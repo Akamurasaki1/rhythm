@@ -1,0 +1,25 @@
+
+{
+    "version": 1,
+    "title": "命日",
+    "difficulty": "Normal",
+    "level": 12,
+    "id": "12",
+    "bpm": 120.0,
+    "audioFilename": "命日.wav",
+    "notes": [
+        {
+            "id": "12-0001",
+            "time": 0.4,
+            "angleDegrees": -10.0,
+            "normalizedPosition": { "x": 0.45, "y": 0.35 }
+        },
+        {
+            "id": "12-0002",
+            "time": 0.7,
+            "angleDegrees": 20.0,
+            "normalizedPosition": { "x": 0.55, "y": 0.38 }
+        }
+    ]
+    
+}

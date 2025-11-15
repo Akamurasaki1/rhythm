@@ -96,7 +96,7 @@ struct ContentView: View {
     @State private var showJudgementUntil: Date? = nil
 
     // Carousel settings (reuse earlier cylinder-like UI)
-    private let repeatFactor = 3
+    private let repeatFactor = 1 // 円柱上で同じ曲は何回ループ？
     @State private var initialScrollPerformed = false
     private let carouselItemWidth: CGFloat = 100
     private let carouselItemSpacing: CGFloat = 12
