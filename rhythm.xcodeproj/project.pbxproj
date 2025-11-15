@@ -24,10 +24,20 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9C0B8E6A2EC880DA000337A1 /* rhythm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = rhythm.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9C0B8E772EC880DC000337A1 /* rhythmTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rhythmTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9C0B8E812EC880DC000337A1 /* rhythmUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rhythmUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C6CCC042EC88A7500CDB08F /* rhythm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = rhythm.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C6CCC052EC88A7500CDB08F /* rhythmTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rhythmTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C6CCC062EC88A7500CDB08F /* rhythmUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rhythmUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9C9486312EC88C3D005CE7CD /* Exceptions for "rhythmTests" folder in "rhythmTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				rhythmTests.swift,
+			);
+			target = 9C0B8E762EC880DC000337A1 /* rhythmTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9C0B8E6C2EC880DA000337A1 /* rhythm */ = {
@@ -37,12 +47,20 @@
 		};
 		9C0B8E7A2EC880DC000337A1 /* rhythmTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9C9486312EC88C3D005CE7CD /* Exceptions for "rhythmTests" folder in "rhythmTests" target */,
+			);
 			path = rhythmTests;
 			sourceTree = "<group>";
 		};
 		9C0B8E842EC880DC000337A1 /* rhythmUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = rhythmUITests;
+			sourceTree = "<group>";
+		};
+		9C0B8EA12EC887EF000337A1 /* Resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -78,18 +96,11 @@
 				9C0B8E6C2EC880DA000337A1 /* rhythm */,
 				9C0B8E7A2EC880DC000337A1 /* rhythmTests */,
 				9C0B8E842EC880DC000337A1 /* rhythmUITests */,
-				9C0B8E6B2EC880DA000337A1 /* Products */,
+				9C0B8EA12EC887EF000337A1 /* Resources */,
+				9C6CCC042EC88A7500CDB08F /* rhythm.app */,
+				9C6CCC052EC88A7500CDB08F /* rhythmTests.xctest */,
+				9C6CCC062EC88A7500CDB08F /* rhythmUITests.xctest */,
 			);
-			sourceTree = "<group>";
-		};
-		9C0B8E6B2EC880DA000337A1 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				9C0B8E6A2EC880DA000337A1 /* rhythm.app */,
-				9C0B8E772EC880DC000337A1 /* rhythmTests.xctest */,
-				9C0B8E812EC880DC000337A1 /* rhythmUITests.xctest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -99,9 +110,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9C0B8E8B2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "rhythm" */;
 			buildPhases = (
-				9C0B8E662EC880DA000337A1 /* Sources */,
 				9C0B8E672EC880DA000337A1 /* Frameworks */,
 				9C0B8E682EC880DA000337A1 /* Resources */,
+				9C9486332EC88C99005CE7CD /* Sources */,
 			);
 			buildRules = (
 			);
@@ -109,12 +120,13 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9C0B8E6C2EC880DA000337A1 /* rhythm */,
+				9C0B8EA12EC887EF000337A1 /* Resources */,
 			);
 			name = rhythm;
 			packageProductDependencies = (
 			);
 			productName = rhythm;
-			productReference = 9C0B8E6A2EC880DA000337A1 /* rhythm.app */;
+			productReference = 9C6CCC042EC88A7500CDB08F /* rhythm.app */;
 			productType = "com.apple.product-type.application";
 		};
 		9C0B8E762EC880DC000337A1 /* rhythmTests */ = {
@@ -137,7 +149,7 @@
 			packageProductDependencies = (
 			);
 			productName = rhythmTests;
-			productReference = 9C0B8E772EC880DC000337A1 /* rhythmTests.xctest */;
+			productReference = 9C6CCC052EC88A7500CDB08F /* rhythmTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		9C0B8E802EC880DC000337A1 /* rhythmUITests */ = {
@@ -160,7 +172,7 @@
 			packageProductDependencies = (
 			);
 			productName = rhythmUITests;
-			productReference = 9C0B8E812EC880DC000337A1 /* rhythmUITests.xctest */;
+			productReference = 9C6CCC062EC88A7500CDB08F /* rhythmUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -196,7 +208,7 @@
 			mainGroup = 9C0B8E612EC880DA000337A1;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 9C0B8E6B2EC880DA000337A1 /* Products */;
+			productRefGroup = 9C0B8E612EC880DA000337A1;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -232,13 +244,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		9C0B8E662EC880DA000337A1 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		9C0B8E732EC880DC000337A1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -247,6 +252,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9C0B8E7D2EC880DC000337A1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9C9486332EC88C99005CE7CD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -405,6 +417,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -437,6 +450,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
