@@ -23,8 +23,8 @@
         },
         {
             "id": "12-0002",
-            "time": 0.9,
-            "holdEndTime":1.5,
+            "time": 1.2,
+            "holdEndTime":5.0,
             "angleDegrees": 20.0,
             "normalizedPosition": { "x": 0.88, "y": 0.18 },
             "noteType":"hold"

@@ -120,7 +120,18 @@ struct ContentView: View {
     @State private var holdTimers: [UUID: DispatchSourceTimer] = [:]
     // 長押し閾値（秒）
     private let longPressThreshold: TimeInterval = 0.35
-    
+    // 追加: ホールド内側の拡大にかける時間をアプローチ時間の何倍にするか
+    // 1.0 = approachDuration（到達と同時にフルサイズになる）
+    // 0.8 = 到達の 80% 時点でフルサイズにする（到達より早く開始される）
+    // 値は 0.0..2.0 くらいを想定（必要なら絶対秒数の変数にしても良い）
+    @State private var holdFillDurationFraction: Double = 1.0
+    // --- 追加: View 上部の @State 群に入れてください ---
+    // "白円が満杯になるまでの時間" = approachDuration * holdFillDurationFraction
+    // 1.0 = approachDuration と同じ、0.8 = 到達の 80% 時点で満杯、など
+
+    @State private var holdFinishTrimThreshold: Double = 0.02
+    // 扇形 (holdTrim) がこの閾値以下になったらホールド完了（very thin）としてノートを削除します。
+    // 0.02 = 2% 程度（要調整）
     private func handlePotentialLongPressStart(at location: CGPoint) {
         // stub: 長押し開始時に呼ばれる（後で hold ノーツ処理を入れる）
         // 将来: location 近傍にある hold ノーツを "holdStarted = true" にする等
@@ -418,22 +429,22 @@ struct ContentView: View {
                                  trimProgress: a.holdTrim,
                                  ringColor: .white.opacity(0.9),
                                  fillColor: .white.opacity(0.95))
-                            .position(a.targetPosition)
-                            .zIndex(4)
+                        .position(a.targetPosition)
+                        .zIndex(4)
+                    }else{
+                        RodView(angleDegrees: a.angleDegrees)
+                            .frame(width: rodWidth, height: rodHeight)
+                            .opacity(a.isClear ? 1.0 : 0.35)
+                            .position(a.position)
+                            .zIndex(a.isClear ? 2 : 1)
+                            .gesture(
+                                DragGesture(minimumDistance: 8)
+                                    .onEnded { value in
+                                        handleFlick(for: a.id, dragValue: value, in: geo.size)
+                                    }
+                            )
                     }
-                    RodView(angleDegrees: a.angleDegrees)
-                        .frame(width: rodWidth, height: rodHeight)
-                        .opacity(a.isClear ? 1.0 : 0.35)
-                        .position(a.position)
-                        .zIndex(a.isClear ? 2 : 1)
-                        .gesture(
-                            DragGesture(minimumDistance: 8)
-                                .onEnded { value in
-                                    handleFlick(for: a.id, dragValue: value, in: geo.size)
-                                }
-                        )
                 }
-                
                 // ボトム操作類（Start/Stop と Reset は常時表示）
                 VStack {
                     Spacer()
@@ -1052,7 +1063,7 @@ struct ContentView: View {
                         let topStart = CGPoint(x: target.x, y: target.y - approachDistance - 80)
                         let bottomStart = CGPoint(x: target.x, y: target.y + approachDistance + 80)
 
-                        let new = ActiveNote(
+                        var new = ActiveNote(
                             id: newID,
                             sourceID: note.id,
                             angleDegrees: 0.0,
@@ -1066,63 +1077,47 @@ struct ContentView: View {
                             position2: bottomStart,
                             holdEndTime: note.holdEndTime
                         )
-                        self.activeNotes.append(new)
-                        // ここは spawnWork の中（main.async 内）で newID を作り self.activeNotes.append(new) の直後に置く
-                        if isHoldNote {
-                            // すぐに内側円は 0 にしておく（見た目）
-                            if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
-                                self.activeNotes[idx].holdFillScale = 0.0
-                                self.activeNotes[idx].holdTrim = 1.0
-                            }
+                        // 初期表示値
+                        new.holdFillScale = 0.0
+                        new.holdTrim = 1.0
 
-                            // 1) approachDuration で内側実円を 0 -> 1 にアニメーションさせる（到達時が押し始めタイミング）
+                        self.activeNotes.append(new)
+                        // holdFill の所要時間を決定
+                            let fraction = max(0.0, min(2.0, self.holdFillDurationFraction))
+                            let holdFillDuration = max(0.0, approachDuration * fraction)
+
+                            // ①: 内側白円を 0 -> 1 にアニメーション（満杯になった瞬間をホールド開始とする）
                             if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
-                                withAnimation(.linear(duration: approachDuration)) {
+                                withAnimation(.linear(duration: holdFillDuration)) {
                                     self.activeNotes[idx].holdFillScale = 1.0
                                 }
                             }
 
-                            // 2) ホールド期間中に扇形を減らすタイマーを作る
-                            // compute hold start/end in device time if possible, else fallback to wall clock
-                            var holdStartDevice: TimeInterval? = nil
-                            var holdEndDevice: TimeInterval? = nil
+                        // ②: 白円が満杯になったタイミングで "ホールド開始" として hold timer を起動
+                        DispatchQueue.main.asyncAfter(deadline: .now() + holdFillDuration) {
+                            // note がまだ残っているか確認
+                            guard let idx2 = self.activeNotes.firstIndex(where: { $0.id == newID }) else { return }
 
-                            if let startDevice = audioStartDeviceTime {
-                                // audioStartDeviceTime is device time when audio was scheduled to start
-                                // note.time and note.holdEndTime are seconds relative to audio start
-                                holdStartDevice = startDevice + note.time
-                                if let hed = note.holdEndTime {
-                                    holdEndDevice = startDevice + hed
-                                }
-                            } else {
-                                // fallback: use Date-based offsets from startDate
-                                if let sd = startDate {
-                                    holdStartDevice = sd.timeIntervalSince1970 + note.time
-                                    if let hed = note.holdEndTime {
-                                        holdEndDevice = sd.timeIntervalSince1970 + hed
-                                    }
-                                }
-                            }
+                            // mark hold started (UI 用フラグ)
+                            self.activeNotes[idx2].holdStarted = true
 
                             // create a timer that updates holdTrim (remaining fraction) at ~30Hz
                             let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
                             let interval = DispatchTimeInterval.milliseconds(33)
                             timer.schedule(deadline: .now(), repeating: interval)
-                            // NOTE: Removed [weak self] capture because 'self' is a struct (View) and cannot be weak.
-                            // Capturing 'self' strongly here is fine because SwiftUI Views are value types and this closure
-                            // runs on DispatchQueue.main; ensure to cancel timer when note is removed to avoid stale references.
+
                             timer.setEventHandler {
-                                // find index again (ActiveNote may have been removed)
-                                guard let idx2 = self.activeNotes.firstIndex(where: { $0.id == newID }) else {
+                                // note が存在するか再度確認
+                                guard let idx3 = self.activeNotes.firstIndex(where: { $0.id == newID }) else {
                                     timer.cancel()
                                     self.holdTimers[newID] = nil
                                     return
                                 }
 
-                                // compute progress based on device time if available
+                                // remainingFraction を計算（device clock 優先）
                                 var remainingFraction: Double = 0.0
                                 if let player = self.audioPlayer, let startDev = self.audioStartDeviceTime, let holdEnd = note.holdEndTime {
-                                    // deviceNow is player.deviceCurrentTime
+                                    // player.deviceCurrentTime はデバイス時刻
                                     let deviceNow = player.deviceCurrentTime
                                     let holdStartDev = startDev + note.time
                                     let holdEndDev = startDev + holdEnd
@@ -1145,29 +1140,31 @@ struct ContentView: View {
                                         remainingFraction = min(1.0, max(0.0, rem / total))
                                     }
                                 } else {
-                                    // no timing info -> just leave as full
+                                    // タイミング情報がなければ full のままにする（外部キャンセルで消す想定）
                                     remainingFraction = 1.0
                                 }
 
-                                // write to activeNotes element
-                                self.activeNotes[idx2].holdTrim = remainingFraction
+                                // UI 更新
+                                self.activeNotes[idx3].holdTrim = remainingFraction
 
-                                // if finished, cancel timer and optionally trigger auto-delete or finish behavior
-                                if remainingFraction <= 0.0001 {
+                                // 扇形が設定しきい値以下になったら "very thin" とみなし完了扱いにする
+                                if remainingFraction <= self.holdFinishTrimThreshold {
                                     timer.cancel()
                                     self.holdTimers[newID] = nil
 
-                                    // visual: remove the note (or you can leave a short fade)
+                                    // visual: 小さくフェードして削除（必要なら成功判定を入れる）
                                     withAnimation(.easeIn(duration: 0.12)) {
                                         self.activeNotes.removeAll { $0.id == newID }
                                     }
                                 }
                             }
-                            // store and start
+
+                            // store and start timer
                             self.holdTimers[newID] = timer
                             timer.resume()
                         }
 
+                        // ③: アプローチ移動（従来どおり）
                         if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
                             withAnimation(.linear(duration: approachDuration)) {
                                 self.activeNotes[idx].position = target
