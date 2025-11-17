@@ -304,7 +304,7 @@ struct ContentView: View {
                         results.append((filename, s))
                     }
                 } catch {
-                    print("Failed decode sheet at Documents \(url): \(error)")
+                    print("Failed decode sheet at Documents \(url)")
                 }
             }
         } catch {
@@ -1108,8 +1108,10 @@ struct ContentView: View {
                             let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
                             let interval = DispatchTimeInterval.milliseconds(33)
                             timer.schedule(deadline: .now(), repeating: interval)
-                            timer.setEventHandler { [weak self] in
-                                guard let self = self else { return }
+                            // NOTE: Removed [weak self] capture because 'self' is a struct (View) and cannot be weak.
+                            // Capturing 'self' strongly here is fine because SwiftUI Views are value types and this closure
+                            // runs on DispatchQueue.main; ensure to cancel timer when note is removed to avoid stale references.
+                            timer.setEventHandler {
                                 // find index again (ActiveNote may have been removed)
                                 guard let idx2 = self.activeNotes.firstIndex(where: { $0.id == newID }) else {
                                     timer.cancel()
