@@ -7,7 +7,7 @@
 
 import XCTest
 
-final class rhythmUITestsLaunchTests: XCTestCase {
+final class SYNqFliQUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

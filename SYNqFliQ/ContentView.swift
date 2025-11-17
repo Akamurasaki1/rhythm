@@ -24,77 +24,181 @@ struct ContentView: View {
         let hitTime: Double
         let spawnTime: Double
         var isClear: Bool
+        // タップノーツ用追加:
+        var isTap: Bool = false
+        var isHold: Bool = false
+        // タップノーツは上下2つの三角を持つ -> position は上側三角の位置、position2 は下側三角
+        var position2: CGPoint? = nil
+        // hold: end time (device/audio time coordinate: use sheet.holdEndTime)
+        var holdEndTime: Double? = nil
+        // hold runtime flags
+        var holdStarted: Bool = false  // set when player started holding
+        // 既存 ActiveNote に追加
+        var holdFillScale: Double = 0.0   // 内側の実円が 0.0->1.0 で拡大
+        var holdTrim: Double = 1.0        // ホールド中の残り割合 (1.0 = 全円、0.0 = 無し)
     }
     // 組み込み sample データは空にする（別プロジェクトでは「新たに入れたデータのみ」を扱う）
     private let sampleDataSets: [[Note]] = []
-
+    
     // Combine 表示数（組み込みサンプル + bundled-sheets 内の譜面）
     private var sampleCount: Int { sampleDataSets.count + bundledSheets.count }
-
+    
     // UI / 状態
     @State private var selectedSampleIndex: Int = 0
     @State private var notesToPlay: [Note] = []
-
+    // notesToPlay (表示用の簡易 Note 配列) は残してもよいが、スケジューリングは sheetNotes を使う
+    @State private var sheetNotesToPlay: [SheetNote] = []
+    
     @State private var activeNotes: [ActiveNote] = []
     @State private var isPlaying = false
     @State private var startDate: Date?
     @State private var showingEditor = false
-
+    
     @State private var isShowingShare = false
     @State private var shareURL: URL? = nil
-
+    
     @State private var isShowingImportPicker = false
     @State private var importErrorMessage: String? = nil
-
+    
     // バンドル内の譜面 (filename, Sheet)
     @State private var bundledSheets: [(filename: String, sheet: Sheet)] = []
-
+    
     // audio player
     @State private var audioPlayer: AVAudioPlayer? = nil
     @State private var currentlyPlayingAudioFilename: String? = nil
     // プロパティ
     @State private var preparedAudioPlayer: AVAudioPlayer?
     @State private var audioStartDeviceTime: TimeInterval? = nil
-
+    
     // persistent test player for debugging (keeps player alive)
     @State private var testPlayer: AVAudioPlayer? = nil
-
+    
     // スケジュール管理
     @State private var scheduledWorkItems: [DispatchWorkItem] = []
     @State private var autoDeleteWorkItems: [UUID: DispatchWorkItem] = [:]
-
+    
     // 重複カウント防止
     @State private var flickedNoteIDs: Set<UUID> = []
-
+    
     // スコア / コンボ
     @State private var score: Int = 0
     @State private var combo: Int = 0
-
+    // 追加: ContentView の @State 群に入れる（他の @State と同じブロック）
+    @State private var cumulativeCombo: Int = 0 // 通算コンボ
+    @State private var consecutiveCombo: Int = 0 // 通算連続コンボ
+    @State private var maxCombo: Int = 0 // 今回のプレイでの最大コンボ
+    @State private var playMaxHistory: [Int] = [] // 各プレイの最大コンボ履歴
+    @State private var perfectCount: Int = 0
+    @State private var goodCount: Int = 0
+    @State private var okCount: Int = 0
+    @State private var missCount: Int = 0
+    
+    // プレイ終了後に集計を見せるフラグ
+    @State private var isShowingResults: Bool = false
+    
     // パラメータ（プレイ中は隠す）
     @State private var approachDistanceFraction: Double = 0.25
     @State private var approachSpeed: Double = 800.0
-
+    
     // 判定窓
-    private let perfectWindow: Double = 0.5
+    private let perfectWindow: Double = 0.6
     private let goodWindowBefore: Double = 0.8
     private let goodWindowAfter: Double = 1.0
-
+    
     // ノーツの寿命（spawn からの秒）
     private let lifeDuration: Double = 2.5
-
+    
     // フリック判定パラメータ
     private let speedThreshold: CGFloat = 35.0
     private let hitRadius: CGFloat = 110.0
+    // タッチ/長押し検出のための State
+    @State private var touchStartTime: Date? = nil
+    @State private var touchStartLocation: CGPoint? = nil
+    @State private var touchIsLongPress: Bool = false
+    @State private var touchLongPressWorkItem: DispatchWorkItem? = nil
+    // hold 用進捗更新タイマーを保持（DispatchSourceTimer）
+    @State private var holdTimers: [UUID: DispatchSourceTimer] = [:]
+    // 長押し閾値（秒）
+    private let longPressThreshold: TimeInterval = 0.35
+    
+    private func handlePotentialLongPressStart(at location: CGPoint) {
+        // stub: 長押し開始時に呼ばれる（後で hold ノーツ処理を入れる）
+        // 将来: location 近傍にある hold ノーツを "holdStarted = true" にする等
+        // print("DBG: long press start at \(location)")
+    }
 
+    private func handlePotentialLongPressEnd(at location: CGPoint, duration: TimeInterval) {
+        // stub: 長押し終了時に呼ばれる（後で hold の成功判定を行う）
+        // print("DBG: long press end at \(location), duration=\(duration)")
+    }
+    private func handleTap(at location: CGPoint, in _unused: CGPoint) {
+        // オーディオ時刻基準
+        var elapsed: TimeInterval = 0.0
+        if let player = audioPlayer, let startDev = audioStartDeviceTime {
+            elapsed = player.deviceCurrentTime - startDev
+        } else if let sd = startDate {
+            elapsed = Date().timeIntervalSince(sd)
+        }
+
+        // find nearest tap note near target
+        var matchedIdx: Int? = nil
+        var bestDist = CGFloat.greatestFiniteMagnitude
+        for (i, a) in activeNotes.enumerated() {
+            guard a.isTap else { continue }
+            let d = hypot(a.targetPosition.x - location.x, a.targetPosition.y - location.y)
+            if d <= hitRadius && d < bestDist {
+                bestDist = d
+                matchedIdx = i
+            }
+        }
+
+        guard let idx = matchedIdx else { return }
+        let note = activeNotes[idx]
+        let dt = elapsed - note.hitTime
+        var judgementText = "OK"
+        var judgementColor: Color = .white
+        if abs(dt) <= perfectWindow {
+            judgementText = "PERFECT"; judgementColor = .green;
+            score += 3
+        } else if (dt >= -goodWindowBefore && dt < -perfectWindow) || (dt > perfectWindow && dt <= goodWindowAfter) {
+            judgementText = "GOOD"; judgementColor = .blue;
+            score += 2
+        } else {
+            judgementText = "OK"; judgementColor = .white;
+            score += 1
+        }
+
+        // scoring
+        combo += 1
+        if combo > maxCombo { maxCombo = combo }
+        switch judgementText {
+        case "PERFECT": perfectCount += 1
+        case "GOOD": goodCount += 1
+        case "OK": okCount += 1
+        default: break
+        }
+
+        // visual + cancel auto-delete
+        let noteID = note.id
+        if let w = autoDeleteWorkItems[noteID] {
+            w.cancel()
+            autoDeleteWorkItems[noteID] = nil
+        }
+        withAnimation(.easeOut(duration: 0.12)) {
+            self.activeNotes.removeAll { $0.id == noteID }
+        }
+        showJudgement(text: judgementText, color: judgementColor)
+    }
+    
     // 見た目
     private let rodWidth: CGFloat = 160
     private let rodHeight: CGFloat = 10
-
+    
     // 判定フィードバック
     @State private var lastJudgement: String = ""
     @State private var lastJudgementColor: Color = .white
     @State private var showJudgementUntil: Date? = nil
-
+    
     // Carousel settings (reuse earlier cylinder-like UI)
     private let repeatFactor = 1 // 円柱上で同じ曲は何回ループ？
     @State private var initialScrollPerformed = false
@@ -127,7 +231,7 @@ struct ContentView: View {
         // split name/ext
         let ext = (audioFilename as NSString).pathExtension
         let name = (audioFilename as NSString).deletingPathExtension
-
+        
         // try app bundle first (root or bundled-audio)
         if let url = Bundle.main.url(forResource: name, withExtension: ext.isEmpty ? "wav" : ext, subdirectory: "bundled-audio") {
             return url
@@ -135,7 +239,7 @@ struct ContentView: View {
         if let url = Bundle.main.url(forResource: name, withExtension: ext.isEmpty ? "wav" : ext) {
             return url
         }
-
+        
         // fallback: check Documents folder (imported audio)
         let candidates = try? FileManager.default.contentsOfDirectory(at: SheetFileManager.documentsURL, includingPropertiesForKeys: nil, options: [])
         if let c = candidates {
@@ -149,12 +253,12 @@ struct ContentView: View {
         }
         return nil
     }
-
+    
     // --- bundled-sheets loader: read JSON from Documents folder only (new project uses imported files) ---
     private func loadBundledSheets() -> [(filename: String, sheet: Sheet)] {
         var results: [(String, Sheet)] = []
         let decoder = JSONDecoder()
-
+        
         // 1) try subdirectory "bundled-sheets"
         if let urls = Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "bundled-sheets") {
             for url in urls {
@@ -167,7 +271,7 @@ struct ContentView: View {
                 }
             }
         }
-
+        
         // 2) fallback: try any json in bundle root
         if results.isEmpty {
             if let rootUrls = Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: nil) {
@@ -187,7 +291,7 @@ struct ContentView: View {
                 }
             }
         }
-
+        
         // 3) also look in Documents (imported JSON)
         do {
             let docUrls = try FileManager.default.contentsOfDirectory(at: SheetFileManager.documentsURL, includingPropertiesForKeys: nil, options: [])
@@ -206,17 +310,17 @@ struct ContentView: View {
         } catch {
             // ignore
         }
-
+        
         print("loadBundledSheets -> found \(results.count) sheets: \(results.map { $0.0 })")
         return results
     }
-
+    
     // MARK: - Body
     var body: some View {
         GeometryReader { geo in
             ZStack {
                 Color.black.ignoresSafeArea()
-
+                
                 // 上段: スコア / コンボ / 判定表示
                 VStack {
                     HStack {
@@ -241,13 +345,13 @@ struct ContentView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top, 8)
-
+                    
                     // Sample ラベル + カルーセル（再生中は非表示）
                     HStack(alignment: .center) {
-                        Text("Sample:")
+                        Text("Songs:")
                             .foregroundColor(.white)
                             .padding(.leading, 10)
-
+                        
                         if !isPlaying {
                             carouselView(width: geo.size.width)
                                 .frame(height: 120)
@@ -255,12 +359,12 @@ struct ContentView: View {
                         } else {
                             Spacer().frame(height: 8)
                         }
-
+                        
                         Spacer()
                     }
                     .padding(.horizontal)
                     .padding(.top, 6)
-
+                    
                     // 調整 UI（再生中は隠す）
                     if !isPlaying {
                         VStack(spacing: 8) {
@@ -270,7 +374,7 @@ struct ContentView: View {
                                 Spacer()
                             }
                             Slider(value: $approachDistanceFraction, in: 0.05...1.5)
-
+                            
                             HStack {
                                 Text("Approach speed (pts/s): \(Int(approachSpeed))")
                                     .foregroundColor(.white)
@@ -285,12 +389,38 @@ struct ContentView: View {
                         .padding(.horizontal)
                         .padding(.top, 6)
                     }
-
+                    
                     Spacer()
                 }
-
+                
                 // 表示中のノーツ
                 ForEach(activeNotes) { a in
+                    if a.isTap {
+                        // タップノーツ: 上下三角
+                        TriangleUp()
+                            .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .top, endPoint: .bottom))
+                            .frame(width: 44, height: 22)
+                            .position(a.position)
+                            .zIndex(3)
+                        
+                        TriangleDown()
+                            .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .bottom, endPoint: .top))
+                            .frame(width: 44, height: 22)
+                            .position(a.position2 ?? a.targetPosition)
+                            .zIndex(3)
+                            .opacity(a.isClear ? 1.0 : 0.95)
+                    } else if a.isHold {
+                        // デフォルトサイズ（調整可）
+                        let size: CGFloat = 64
+                        // 中央位置に HoldView を描画（target に合わせる）
+                        HoldView(size: size,
+                                 fillScale: a.holdFillScale,
+                                 trimProgress: a.holdTrim,
+                                 ringColor: .white.opacity(0.9),
+                                 fillColor: .white.opacity(0.95))
+                            .position(a.targetPosition)
+                            .zIndex(4)
+                    }
                     RodView(angleDegrees: a.angleDegrees)
                         .frame(width: rodWidth, height: rodHeight)
                         .opacity(a.isClear ? 1.0 : 0.35)
@@ -303,7 +433,7 @@ struct ContentView: View {
                                 }
                         )
                 }
-
+                
                 // ボトム操作類（Start/Stop と Reset は常時表示）
                 VStack {
                     Spacer()
@@ -317,9 +447,13 @@ struct ContentView: View {
                                 if selectedSampleIndex >= sampleDataSets.count {
                                     let bundledIndex = selectedSampleIndex - sampleDataSets.count
                                     if bundledSheets.indices.contains(bundledIndex) {
+                                        // 既往の notesToPlay = bundledSheets[bundledIndex].sheet.notes.asNotes()
+                                        // の代わりに元の SheetNote 配列を保持
+                                        sheetNotesToPlay = bundledSheets[bundledIndex].sheet.notes
+                                        // （必要なら表示用に Note 型へ変換して notesToPlay にも入れる）
                                         notesToPlay = bundledSheets[bundledIndex].sheet.notes.asNotes()
-                                        prepareAudioIfNeeded(named: bundledSheets[bundledIndex].sheet.audioFilename)
                                     } else {
+                                        sheetNotesToPlay = []
                                         notesToPlay = []
                                     }
                                 } else {
@@ -337,18 +471,18 @@ struct ContentView: View {
                                 .cornerRadius(8)
                         }
                         Spacer()
-                            // Editor ボタン
-                            Button(action: {
-                                showingEditor = true
-                            }) {
-                                Text("Editor")
-                                    .font(.subheadline)
-                                    .padding(8)
-                                    .background(Color.blue.opacity(0.85))
-                                    .foregroundColor(.white)
-                                    .cornerRadius(6)
-                            }
-                            Spacer()
+                        // Editor ボタン
+                        Button(action: {
+                            showingEditor = true
+                        }) {
+                            Text("Editor")
+                                .font(.subheadline)
+                                .padding(8)
+                                .background(Color.blue.opacity(0.85))
+                                .foregroundColor(.white)
+                                .cornerRadius(6)
+                        }
+                        Spacer()
                         // Export (placeholder)
                         do {
                             Text("Export")
@@ -358,9 +492,9 @@ struct ContentView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(6)
                         }
-
+                        
                         Spacer()
-
+                        
                         Button(action: {
                             isShowingImportPicker = true
                         }) {
@@ -382,11 +516,11 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
-                .sheet(isPresented: $showingEditor) {
-                    SheetEditorView()
-                }
+                    .sheet(isPresented: $showingEditor) {
+                        SheetEditorView()
+                    }
                     .padding(.bottom, 16)
-
+                    
                     if !isPlaying {
                         HStack {
                             Text("Selected: \(selectedSampleIndex + 1)")
@@ -401,6 +535,58 @@ struct ContentView: View {
             }
             // グローバルフリック検出
             .contentShape(Rectangle())
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        // first touch event: set start time and schedule long press
+                        if touchStartTime == nil {
+                            touchStartTime = Date()
+                            touchStartLocation = value.startLocation
+                            touchIsLongPress = false
+
+                            // schedule long-press marker
+                            let work = DispatchWorkItem {
+                                DispatchQueue.main.async {
+                                    touchIsLongPress = true
+                                    // notify potential long-press start (hook for future)
+                                    handlePotentialLongPressStart(at: value.startLocation)
+                                }
+                            }
+                            touchLongPressWorkItem?.cancel()
+                            touchLongPressWorkItem = work
+                            DispatchQueue.global().asyncAfter(deadline: .now() + longPressThreshold, execute: work)
+                        }
+                    }
+                    .onEnded { value in
+                        // cancel scheduled long press detection
+                        touchLongPressWorkItem?.cancel()
+                        touchLongPressWorkItem = nil
+
+                        let start = touchStartTime ?? Date()
+                        let duration = Date().timeIntervalSince(start)
+                        let dx = value.location.x - (touchStartLocation?.x ?? value.location.x)
+                        let dy = value.location.y - (touchStartLocation?.y ?? value.location.y)
+                        let dist = hypot(dx, dy)
+
+                        // if it was long press (work item fired), treat as long-press end
+                        if touchIsLongPress {
+                            handlePotentialLongPressEnd(at: value.location, duration: duration)
+                        } else {
+                            // short, treat as tap if finger didn't move much
+                            if dist < 20.0 {
+                                handleTap(at: value.location, in: value.startLocation) // you can pass geo.size if needed
+                            } else {
+                                // treat as flick if long drag
+                                handleGlobalFlick(dragValue: value, in: UIScreen.main.bounds.size)
+                            }
+                        }
+
+                        // reset touch state
+                        touchStartTime = nil
+                        touchStartLocation = nil
+                        touchIsLongPress = false
+                    }
+            )
             .gesture(
                 DragGesture(minimumDistance: 8)
                     .onEnded { value in
@@ -420,38 +606,105 @@ struct ContentView: View {
                 }
             }
             
-            .onAppear {
-                // load bundledSheets first, then select
-                bundledSheets = loadBundledSheets()
-                if !bundledSheets.isEmpty {
-                    selectedSampleIndex = sampleDataSets.count // 最初の bundled sheet を選択
-                }
-
-                // デバッグ用（onAppear 内か load 完了時に呼ぶ）
-                let jsonUrls = Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "bundled-sheets") ?? []
-                print("Bundle: found json in bundled-sheets: \(jsonUrls.map { $0.lastPathComponent })")
-
-                if let audioURL = bundleURLForAudio(named: "mopemope.wav") {
-                    print("Bundle: found audio: \(audioURL.lastPathComponent) at \(audioURL)")
-                } else {
-                    print("Bundle: audio NOT found for mopemope.wav")
-                }
-
-                // quick persistent audio test (keeps player in state so we can verify playback)
-
-            }
-            .sheet(isPresented: $isShowingShare, onDismiss: {
-                shareURL = nil
-            }) {
-                if let url = shareURL {
-                    ShareSheet(activityItems: [url])
-                } else {
-                    Text("No file to share.")
-                }
-            }
+                          .onAppear {
+                              // load bundledSheets first, then select
+                              bundledSheets = loadBundledSheets()
+                              if !bundledSheets.isEmpty {
+                                  selectedSampleIndex = sampleDataSets.count // 最初の bundled sheet を選択
+                              }
+                              
+                              // デバッグ用（onAppear 内か load 完了時に呼ぶ）
+                              let jsonUrls = Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "bundled-sheets") ?? []
+                              print("Bundle: found json in bundled-sheets: \(jsonUrls.map { $0.lastPathComponent })")
+                              
+                              if let audioURL = bundleURLForAudio(named: "mopemope.wav") {
+                                  print("Bundle: found audio: \(audioURL.lastPathComponent) at \(audioURL)")
+                              } else {
+                                  print("Bundle: audio NOT found for mopemope.wav")
+                              }
+                              
+                              // quick persistent audio test (keeps player in state so we can verify playback)
+                              
+                          }
+            // 表示用: 再生結果を sheet で表示
+                          .sheet(isPresented: $isShowingResults, onDismiss: {
+                              // 結果を閉じたときに必要ならリセット処理を入れる
+                          }) {
+                              VStack(spacing: 16) {
+                                  Text("プレイ結果")
+                                      .font(.title)
+                                      .bold()
+                                  HStack{
+                                      Text("Score:   ").font(.title2).bold()
+                                      Text("\(score)").font(.title2).bold()
+                                  }
+                                  HStack {
+                                      Text("最大コンボ").font(.title2).bold()
+                                      Spacer()
+                                      Text("\(maxCombo)").font(.title2)
+                                          .bold()
+                                  }
+                                  HStack {
+                                      Text("PERFECT")
+                                      Spacer()
+                                      Text("\(perfectCount)")
+                                  }
+                                  HStack {
+                                      Text("GOOD")
+                                      Spacer()
+                                      Text("\(goodCount)")
+                                  }
+                                  HStack {
+                                      Text("OK")
+                                      Spacer()
+                                      Text("\(okCount)")
+                                  }
+                                  HStack {
+                                      Text("MISS")
+                                      Spacer()
+                                      Text("\(missCount)")
+                                  }
+                                  Divider()
+                                  HStack {
+                                      Text("通算連続コンボ")
+                                      Spacer()
+                                      Text("\(consecutiveCombo)")
+                                  }
+                                  HStack {
+                                      Text("通算コンボ")
+                                      Spacer()
+                                      Text("\(cumulativeCombo)")
+                                  }
+                                  
+                                  
+                                  Button(action: {
+                                      isShowingResults = false
+                                      
+                                  }) {
+                                      Text("閉じる")
+                                          .bold()
+                                          .frame(maxWidth: .infinity)
+                                          .padding()
+                                          .background(Color.blue.opacity(0.85))
+                                          .foregroundColor(.white)
+                                          .cornerRadius(8)
+                                  }
+                                  .padding(.top, 8)
+                              }
+                              .padding()
+                          }
+                          .sheet(isPresented: $isShowingShare, onDismiss: {
+                              shareURL = nil
+                          }) {
+                              if let url = shareURL {
+                                  ShareSheet(activityItems: [url])
+                              } else {
+                                  Text("No file to share.")
+                              }
+                          }
         }
     }
-
+    
     // MARK: - Carousel (円柱風ループ)
     @ViewBuilder
     private func carouselView(width: CGFloat) -> some View {
@@ -459,7 +712,7 @@ struct ContentView: View {
         let entriesCount = max(1, sampleCount)
         let total = entriesCount * repeatFactor
         let initialIndex = entriesCount * (repeatFactor / 2)
-
+        
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: carouselItemSpacing) {
@@ -474,7 +727,7 @@ struct ContentView: View {
                             let rotateDeg = -normalized * 30.0
                             let scale = 1.0 - abs(normalized) * 0.25
                             let opacity = 1.0 - abs(normalized) * 0.6
-
+                            
                             VStack {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 10)
@@ -510,7 +763,7 @@ struct ContentView: View {
                                     selectedSampleIndex = sampleIndex
                                     let target = entriesCount * (repeatFactor / 2) + sampleIndex
                                     proxy.scrollTo(target, anchor: .center)
-
+                                    
                                     // preview: update notesToPlay for non-playing preview
                                     if !isPlaying {
                                         if sampleIndex >= sampleDataSets.count {
@@ -543,7 +796,7 @@ struct ContentView: View {
             }
         }
     }
-
+    
     private func sampleLabel(for index: Int) -> String {
         // built-in samples first
         if index < sampleDataSets.count {
@@ -556,16 +809,16 @@ struct ContentView: View {
         }
         return "No.\(index + 1)"
     }
-
+    
     private func shouldShowJudgement() -> Bool {
         if let until = showJudgementUntil {
             return Date() <= until
         }
         return false
     }
-
+    
     // Paste these functions into ContentView (methods area)
-
+    
     func handleImportedFile(url: URL) {
         // DocumentPicker may give security-scoped url (sandbox). We attempt to copy it into Documents.
         DispatchQueue.global(qos: .userInitiated).async {
@@ -578,7 +831,7 @@ struct ContentView: View {
                     url.stopAccessingSecurityScopedResource()
                 }
             }
-
+            
             let destURL = SheetFileManager.documentsURL.appendingPathComponent(url.lastPathComponent)
             do {
                 // If file exists, append a numeric suffix to avoid overwrite
@@ -591,11 +844,11 @@ struct ContentView: View {
                     finalDest = SheetFileManager.documentsURL.appendingPathComponent(newName)
                     idx += 1
                 }
-
+                
                 // Copy selected file to app Documents folder
                 try FileManager.default.copyItem(at: url, to: finalDest)
                 print("Imported file copied to: \(finalDest.path)")
-
+                
                 // reload samples/UI on main thread
                 DispatchQueue.main.async {
                     bundledSheets = loadBundledSheets()
@@ -608,21 +861,33 @@ struct ContentView: View {
             }
         }
     }
-
+    
     // MARK: - Playback (spawn/clear/delete を整理してスケジュール)
     private func startPlayback(in size: CGSize) {
         // startPlayback の冒頭に追加（既にある場合は不要）
         if testPlayer?.isPlaying == true {
             testPlayer?.stop()
         }
+        
         testPlayer = nil
         print("DBG: startPlayback entered isPlaying=\(isPlaying) selectedIndex=\(selectedSampleIndex) sampleDataSetsCount=\(sampleDataSets.count) bundledSheetsCount=\(bundledSheets.count)")
         if selectedSampleIndex >= sampleDataSets.count {
             let bidx = selectedSampleIndex - sampleDataSets.count
             print("DBG: selected bundled index = \(bidx), bundled sheet filename = \(bundledSheets.indices.contains(bidx) ? bundledSheets[bidx].filename : "out-of-range")")
         }
+        // 変更: startPlayback の先頭（isPlaying の guard の手前または直後）で集計リセットを追加
+        // 既に startPlayback 先頭に DBG: log を入れている箇所の直後が良いです。
+        // start of a new play: reset per-play stats
+        maxCombo = 0
+        score = 0           // ← 追加: 前回のスコアをクリア
+        combo = 0           // ← 追加: 前回のコンボをクリア
+        perfectCount = 0
+        goodCount = 0
+        okCount = 0
+        missCount = 0
+        isShowingResults = false
         guard !isPlaying else { return }
-
+        
         // set up AVAudioSession and AVAudioPlayer if we have audio (try to find audio for bundled sheet if selected)
         var audioURL: URL? = nil
         var sheetForOffset: Sheet? = nil
@@ -640,13 +905,13 @@ struct ContentView: View {
                 }
             }
         }
-
+        
         if let url = audioURL {
             // debug
             print("DBG: sheetForOffset = \(String(describing: sheetForOffset))")
             print("DBG: sheetForOffset.audioFilename = \(String(describing: sheetForOffset?.audioFilename))")
             print("DEBUG: resolved audioURL = \(String(describing: audioURL))")
-
+            
             // Ensure AVAudioSession is active (attempt once; avoid repeated heavy activate)
             do {
                 try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
@@ -654,7 +919,7 @@ struct ContentView: View {
             } catch {
                 print("DEBUG: AVAudioSession setup failed (ignored): \(error)")
             }
-
+            
             // If we have a prepared player for the same URL, use it; otherwise create one
             if let p = preparedAudioPlayer, p.url == url {
                 audioPlayer = p
@@ -669,7 +934,7 @@ struct ContentView: View {
                     audioPlayer = nil
                 }
             }
-
+            
             // If we have an audio player, schedule it to play at a device time in the near future
             if let player = audioPlayer {
                 // compute a safe lead time based on audio session latency / io buffer
@@ -677,7 +942,7 @@ struct ContentView: View {
                 let deviceNow = player.deviceCurrentTime
                 let leadTime = max(0.05, session.outputLatency + session.ioBufferDuration + 0.02) // ~50ms minimal
                 let startAt = deviceNow + leadTime
-
+                
                 // schedule audio to start at startAt
                 player.play(atTime: startAt)
                 audioStartDeviceTime = startAt
@@ -691,28 +956,28 @@ struct ContentView: View {
             currentlyPlayingAudioFilename = nil
             audioStartDeviceTime = nil
         }
-
+        
         // Now schedule notes
         isPlaying = true
         startDate = Date()
         activeNotes.removeAll()
         flickedNoteIDs.removeAll()
-
+        
         // cancel previous scheduled
         scheduledWorkItems.forEach { $0.cancel() }
         scheduledWorkItems.removeAll()
         autoDeleteWorkItems.values.forEach { $0.cancel() }
         autoDeleteWorkItems.removeAll()
-
+        
         // デバッグ出力・バリデーション追加版
         print("notesToPlay count:", notesToPlay.count)
         for (i,n) in notesToPlay.enumerated() {
             print(" note[\(i)]: id=\(n.id ?? "nil") time=\(n.time) pos=\(n.normalizedPosition) angle=\(n.angleDegrees)")
         }
         print("startPlayback: scheduling \(notesToPlay.count) notes")
-        for (i, note) in notesToPlay.enumerated() {
+        for (i, note) in sheetNotesToPlay.enumerated() {
             print("note[\(i)]: time=\(note.time), angle=\(note.angleDegrees), normalized=\(note.normalizedPosition)")
-
+            
             // normalizedPosition の妥当性チェック（NaN / infinite / 範囲外）
             let nx = note.normalizedPosition.x
             let ny = note.normalizedPosition.y
@@ -723,49 +988,209 @@ struct ContentView: View {
             // 画面外へ出るような値を含むなら clamp する or skip（ここでは clamp）
             let clampedX = min(max(0.0, nx), 1.0)
             let clampedY = min(max(0.0, ny), 1.0)
-
+            
             let approachDistance = approachDistanceFraction * min(size.width, size.height)
             let approachDuration = approachDistance / max(approachSpeed, 1.0)
             let spawnTime = max(0.0, note.time - approachDuration)
-
+            
             let target = CGPoint(x: clampedX * size.width,
                                  y: clampedY * size.height)
-
+            
             // angle の妥当性（NaN 等）もチェック
             if note.angleDegrees.isNaN || note.angleDegrees.isInfinite {
                 print("Skipping note[\(i)] due to invalid angleDegrees: \(note.angleDegrees)")
                 continue
             }
-
-
+            
+            
             let theta = CGFloat(note.angleDegrees) * .pi / 180.0
             let rodDir = CGPoint(x: cos(theta), y: sin(theta))
             // ここは一方向から進入（v12 の感触）
             let n1 = CGPoint(x: -rodDir.y, y: rodDir.x)
             let startPos = CGPoint(x: target.x - n1.x * approachDistance,
                                    y: target.y - n1.y * approachDistance)
-
+            
             // spawn: ノートを追加してアニメーションで移動開始
+            // === Replace the spawnWork block with this corrected version ===
             let spawnWork = DispatchWorkItem {
                 DispatchQueue.main.async {
                     // --- In startPlayback, inside spawnWork when creating new ActiveNote ---
                     let newID = UUID()
-                    let new = ActiveNote(
-                        id: newID,
-                        sourceID: note.id,           // <- ここで元ノーツの id を渡す
-                        angleDegrees: note.angleDegrees,
-                        position: startPos,
-                        targetPosition: target,
-                        hitTime: note.time,
-                        spawnTime: spawnTime,
-                        isClear: false
-                    )
-                    self.activeNotes.append(new)
 
-                    // アプローチ移動は withAnimation(.linear(duration:))
-                    if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
-                        withAnimation(.linear(duration: approachDuration)) {
-                            self.activeNotes[idx].position = target
+                    // note はループ変数を使う（sheet ではない）
+                    let isTapNote = (note.noteType == "tap")
+                    let isHoldNote = (note.noteType == "hold")
+
+                    if isTapNote {
+                        // タップ: 上下三角が target に向かってくる
+                        let topStart = CGPoint(x: target.x, y: target.y - approachDistance - 60)
+                        let bottomStart = CGPoint(x: target.x, y: target.y + approachDistance + 60)
+
+                        let new = ActiveNote(
+                            id: newID,
+                            sourceID: note.id,
+                            angleDegrees: 0.0,
+                            position: topStart,
+                            targetPosition: target,
+                            hitTime: note.time,
+                            spawnTime: spawnTime,
+                            isClear: false,
+                            isTap: true,
+                            position2: bottomStart
+                        )
+                        self.activeNotes.append(new)
+
+                        // 2つを同時に target に移動
+                        if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
+                            withAnimation(.linear(duration: approachDuration)) {
+                                self.activeNotes[idx].position = target
+                                self.activeNotes[idx].position2 = target
+                            }
+                        }
+                    } else if isHoldNote {
+                        // Hold: start positions like tap, but mark holdEndTime
+                        let topStart = CGPoint(x: target.x, y: target.y - approachDistance - 80)
+                        let bottomStart = CGPoint(x: target.x, y: target.y + approachDistance + 80)
+
+                        let new = ActiveNote(
+                            id: newID,
+                            sourceID: note.id,
+                            angleDegrees: 0.0,
+                            position: topStart,
+                            targetPosition: target,
+                            hitTime: note.time,
+                            spawnTime: spawnTime,
+                            isClear: false,
+                            isTap: false,
+                            isHold: true,
+                            position2: bottomStart,
+                            holdEndTime: note.holdEndTime
+                        )
+                        self.activeNotes.append(new)
+                        // ここは spawnWork の中（main.async 内）で newID を作り self.activeNotes.append(new) の直後に置く
+                        if isHoldNote {
+                            // すぐに内側円は 0 にしておく（見た目）
+                            if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
+                                self.activeNotes[idx].holdFillScale = 0.0
+                                self.activeNotes[idx].holdTrim = 1.0
+                            }
+
+                            // 1) approachDuration で内側実円を 0 -> 1 にアニメーションさせる（到達時が押し始めタイミング）
+                            if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
+                                withAnimation(.linear(duration: approachDuration)) {
+                                    self.activeNotes[idx].holdFillScale = 1.0
+                                }
+                            }
+
+                            // 2) ホールド期間中に扇形を減らすタイマーを作る
+                            // compute hold start/end in device time if possible, else fallback to wall clock
+                            var holdStartDevice: TimeInterval? = nil
+                            var holdEndDevice: TimeInterval? = nil
+
+                            if let startDevice = audioStartDeviceTime {
+                                // audioStartDeviceTime is device time when audio was scheduled to start
+                                // note.time and note.holdEndTime are seconds relative to audio start
+                                holdStartDevice = startDevice + note.time
+                                if let hed = note.holdEndTime {
+                                    holdEndDevice = startDevice + hed
+                                }
+                            } else {
+                                // fallback: use Date-based offsets from startDate
+                                if let sd = startDate {
+                                    holdStartDevice = sd.timeIntervalSince1970 + note.time
+                                    if let hed = note.holdEndTime {
+                                        holdEndDevice = sd.timeIntervalSince1970 + hed
+                                    }
+                                }
+                            }
+
+                            // create a timer that updates holdTrim (remaining fraction) at ~30Hz
+                            let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+                            let interval = DispatchTimeInterval.milliseconds(33)
+                            timer.schedule(deadline: .now(), repeating: interval)
+                            timer.setEventHandler { [weak self] in
+                                guard let self = self else { return }
+                                // find index again (ActiveNote may have been removed)
+                                guard let idx2 = self.activeNotes.firstIndex(where: { $0.id == newID }) else {
+                                    timer.cancel()
+                                    self.holdTimers[newID] = nil
+                                    return
+                                }
+
+                                // compute progress based on device time if available
+                                var remainingFraction: Double = 0.0
+                                if let player = self.audioPlayer, let startDev = self.audioStartDeviceTime, let holdEnd = note.holdEndTime {
+                                    // deviceNow is player.deviceCurrentTime
+                                    let deviceNow = player.deviceCurrentTime
+                                    let holdStartDev = startDev + note.time
+                                    let holdEndDev = startDev + holdEnd
+                                    let total = holdEndDev - holdStartDev
+                                    if total <= 0 {
+                                        remainingFraction = 0.0
+                                    } else {
+                                        let rem = max(0.0, holdEndDev - deviceNow)
+                                        remainingFraction = min(1.0, max(0.0, rem / total))
+                                    }
+                                } else if let sd = self.startDate, let holdEnd = note.holdEndTime {
+                                    let now = Date().timeIntervalSince1970
+                                    let holdStartWall = sd.timeIntervalSince1970 + note.time
+                                    let holdEndWall = sd.timeIntervalSince1970 + holdEnd
+                                    let total = holdEndWall - holdStartWall
+                                    if total <= 0 {
+                                        remainingFraction = 0.0
+                                    } else {
+                                        let rem = max(0.0, holdEndWall - now)
+                                        remainingFraction = min(1.0, max(0.0, rem / total))
+                                    }
+                                } else {
+                                    // no timing info -> just leave as full
+                                    remainingFraction = 1.0
+                                }
+
+                                // write to activeNotes element
+                                self.activeNotes[idx2].holdTrim = remainingFraction
+
+                                // if finished, cancel timer and optionally trigger auto-delete or finish behavior
+                                if remainingFraction <= 0.0001 {
+                                    timer.cancel()
+                                    self.holdTimers[newID] = nil
+
+                                    // visual: remove the note (or you can leave a short fade)
+                                    withAnimation(.easeIn(duration: 0.12)) {
+                                        self.activeNotes.removeAll { $0.id == newID }
+                                    }
+                                }
+                            }
+                            // store and start
+                            self.holdTimers[newID] = timer
+                            timer.resume()
+                        }
+
+                        if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
+                            withAnimation(.linear(duration: approachDuration)) {
+                                self.activeNotes[idx].position = target
+                                self.activeNotes[idx].position2 = target
+                            }
+                        }
+                    } else {
+                        // 通常ノーツ
+                        let new = ActiveNote(
+                            id: newID,
+                            sourceID: note.id,
+                            angleDegrees: note.angleDegrees,
+                            position: startPos,
+                            targetPosition: target,
+                            hitTime: note.time,
+                            spawnTime: spawnTime,
+                            isClear: false
+                        )
+                        self.activeNotes.append(new)
+
+                        // アプローチ移動は withAnimation(.linear(duration:))
+                        if let idx = self.activeNotes.firstIndex(where: { $0.id == newID }) {
+                            withAnimation(.linear(duration: approachDuration)) {
+                                self.activeNotes[idx].position = target
+                            }
                         }
                     }
 
@@ -783,26 +1208,32 @@ struct ContentView: View {
                                 }
                                 // Miss の振る舞い
                                 self.combo = 0
+                                self.consecutiveCombo = 0
+                                self.missCount += 1
                                 self.autoDeleteWorkItems[newID] = nil
                                 self.showJudgement(text: "MISS", color: .red)
                             }
                         }
                     }
+
                     // store and schedule deleteWork relative to now (spawn moment)
                     self.autoDeleteWorkItems[newID] = deleteWork
                     DispatchQueue.main.asyncAfter(deadline: .now() + self.lifeDuration, execute: deleteWork)
-                }
-            }
-
+                } // end DispatchQueue.main.async
+            } // end spawnWork
             // clear: hitTime に鮮明表示にする
             // --- clearWork: use sourceID match when available, fallback to time/position match ---
             let clearWork = DispatchWorkItem {
                 DispatchQueue.main.async {
                     // Try to find by sourceID first (if notesToPlay items had ids)
                     var foundIndex: Int? = nil
-                    if let sheetNoteID = ( /* NOTE: this closure captures `note` from for-loop */ note.id ) {
+
+                    // note.id が非 optional (String) の場合は普通に代入して使う
+                    let sheetNoteID = note.id
+                    if !sheetNoteID.isEmpty {
                         foundIndex = self.activeNotes.firstIndex(where: { $0.sourceID == sheetNoteID })
                     }
+
                     // Fallback: previous behavior (match by hitTime + targetPosition)
                     if foundIndex == nil {
                         foundIndex = self.activeNotes.firstIndex(where: { $0.hitTime == note.time && $0.targetPosition == target })
@@ -814,7 +1245,7 @@ struct ContentView: View {
                     }
                 }
             }
-
+            
             // schedule
             scheduledWorkItems.append(spawnWork)
             scheduledWorkItems.append(clearWork)
@@ -822,14 +1253,14 @@ struct ContentView: View {
             if let player = audioPlayer, let startDevice = audioStartDeviceTime {
                 // current device time
                 let deviceNow = player.deviceCurrentTime
-
+                
                 // spawnTime is relative to audio start
                 let spawnDeviceTime = startDevice + spawnTime
                 let clearDeviceTime = startDevice + note.time
-
+                
                 let spawnDelay = max(0.0, spawnDeviceTime - deviceNow)
                 let clearDelay = max(0.0, clearDeviceTime - deviceNow)
-
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + spawnDelay, execute: spawnWork)
                 DispatchQueue.main.asyncAfter(deadline: .now() + clearDelay, execute: clearWork)
             } else {
@@ -838,7 +1269,7 @@ struct ContentView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + note.time, execute: clearWork)
             }
         }
-
+        
         // 最後のノート後に isPlaying を false に戻す（余裕タイム）
         if let last = notesToPlay.map({ $0.time }).max() {
             let finishDelay = last + lifeDuration + 0.5
@@ -849,13 +1280,29 @@ struct ContentView: View {
                     // cancel any auto-delete
                     self.autoDeleteWorkItems.values.forEach { $0.cancel() }
                     self.autoDeleteWorkItems.removeAll()
-
+                    // cancel all hold timers
+                    self.holdTimers.values.forEach { $0.cancel() }
+                    self.holdTimers.removeAll()
+                    // --- 追加: 今回プレイの最大コンボを通算へ反映・履歴へ追加 ---
+                    self.cumulativeCombo += self.maxCombo
+                    self.consecutiveCombo += self.maxCombo
+                    self.playMaxHistory.append(self.maxCombo)
+                    // 永続化（任意）
+                    UserDefaults.standard.set(self.cumulativeCombo, forKey: "cumulativeCombo")
+                    UserDefaults.standard.set(self.playMaxHistory, forKey: "playMaxHistory")
+                    UserDefaults.standard.set(self.consecutiveCombo, forKey: "consecutiveCombo")
+                    
+                    // その後に結果表示フラグを立てる
+                    self.isShowingResults = true
+                    // show results
+                    self.isShowingResults = true
                     // stop audio when finished
                     if audioPlayer?.isPlaying == true {
                         audioPlayer?.stop()
                     }
                     audioPlayer = nil
                     currentlyPlayingAudioFilename = nil
+                    
                 }
             }
             scheduledWorkItems.append(finishWork)
@@ -947,16 +1394,39 @@ struct ContentView: View {
         var judgementText = "OK"
         var judgementColor: Color = .white
         if abs(dt) <= perfectWindow {
-            judgementText = "PERFECT"; judgementColor = .green
+            judgementText = "PERFECT"; judgementColor = .green;
+            score += 3
         } else if (dt >= -goodWindowBefore && dt < -perfectWindow) || (dt > perfectWindow && dt <= goodWindowAfter) {
-            judgementText = "GOOD"; judgementColor = .blue
+            judgementText = "GOOD"; judgementColor = .blue;
+            score += 2
         } else {
-            judgementText = "OK"; judgementColor = .white
+            judgementText = "OK"; judgementColor = .white;
+            score += 1
         }
 
         // スコア/コンボ
-        score += 1
         combo += 1
+        if combo > maxCombo {
+            maxCombo = combo
+        }
+
+        // カウント増加
+        switch judgementText {
+        case "PERFECT":
+            perfectCount += 1
+        case "GOOD":
+            goodCount += 1
+        case "OK":
+            okCount += 1
+        default:
+            break
+        }
+
+        // 最大コンボ更新
+        if combo > maxCombo {
+            maxCombo = combo
+        }
+
         showJudgement(text: judgementText, color: judgementColor)
 
         // フリック後の飛翔は v12 っぽく easing で飛ばす
@@ -1019,6 +1489,80 @@ struct RodView: View {
             .cornerRadius(5)
             .shadow(color: Color.white.opacity(0.2), radius: 4, x: 0, y: 2)
             .rotationEffect(.degrees(angleDegrees))
+    }
+}
+// 上向き三角
+struct TriangleUp: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        p.closeSubpath()
+        return p
+    }
+}
+
+// 下向き三角
+struct TriangleDown: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.midX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        p.closeSubpath()
+        return p
+    }
+}
+// 扇形 (0..1 の progress に応じて扇形を描画。0 => 無し, 1 => full circle)
+struct Sector: Shape {
+    var progress: Double // 0..1
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2.0
+        let startAngle = -Double.pi / 2.0 // 12時から時計回り
+        let endAngle = startAngle + progress * 2.0 * Double.pi
+
+        p.move(to: center)
+        p.addArc(center: center,
+                 radius: radius,
+                 startAngle: Angle(radians: startAngle),
+                 endAngle: Angle(radians: endAngle),
+                 clockwise: false)
+        p.closeSubpath()
+        return p
+    }
+}
+
+// Hold 表示コンポーネント
+struct HoldView: View {
+    // fillScale: 0..1 (内側実円の拡大)
+    // trimProgress: 0..1 (ホールド残り割合: 1.0=満杯, 0.0=消滅)
+    let size: CGFloat
+    let fillScale: Double
+    let trimProgress: Double
+    let ringColor: Color
+    let fillColor: Color
+    var body: some View {
+        ZStack {
+            // 外周リング（中空の円周）
+            Circle()
+                .stroke(ringColor, lineWidth: max(3, size * 0.06))
+                .frame(width: size, height: size)
+
+            // 内側の実円（拡大）を、扇形マスクで切り抜くことで「消える」表現にする
+            Circle()
+                .fill(fillColor)
+                .frame(width: size * CGFloat(max(0.0, fillScale)), height: size * CGFloat(max(0.0, fillScale)))
+                .opacity(fillScale > 0.001 ? 1.0 : 0.0)
+                .mask(
+                    // Sector は 0..1 の範囲を描く。trimProgress が 1 => 見える、0 => 見えない
+                    Sector(progress: trimProgress)
+                        .frame(width: size, height: size)
+                )
+        }
+        .frame(width: size, height: size)
     }
 }
 

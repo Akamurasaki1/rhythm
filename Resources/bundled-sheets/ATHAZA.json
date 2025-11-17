@@ -5,7 +5,7 @@
     "difficulty": "Normal",
     "level": 12,
     "id": "12",
-    "bpm": 120.0,
+    "bpm": 280.0,
     "audioFilename": "ATHAZA.mp3",
     "notes": [
         {
@@ -16,6 +16,30 @@
         },
         {
             "id": "12-0002",
+            "time": 0.7,
+            "angleDegrees": 20.0,
+            "normalizedPosition": { "x": 0.55, "y": 0.38 }
+        },
+        {
+            "id": "12-0003",
+            "time": 0.4,
+            "angleDegrees": -10.0,
+            "normalizedPosition": { "x": 0.45, "y": 0.35 }
+        },
+        {
+            "id": "12-0004",
+            "time": 0.7,
+            "angleDegrees": 20.0,
+            "normalizedPosition": { "x": 0.55, "y": 0.38 }
+        },
+        {
+            "id": "12-0005",
+            "time": 0.4,
+            "angleDegrees": -10.0,
+            "normalizedPosition": { "x": 0.45, "y": 0.35 }
+        },
+        {
+            "id": "12-0006",
             "time": 0.7,
             "angleDegrees": 20.0,
             "normalizedPosition": { "x": 0.55, "y": 0.38 }

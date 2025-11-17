@@ -1,12 +1,12 @@
 
 {
     "version": 1,
-    "title": "MARENOL 1mg",
+    "title": "命日",
     "difficulty": "Normal",
     "level": 12,
     "id": "12",
-    "bpm": 120.0,
-    "audioFilename": "MARENOL1mg.mp3",
+    "bpm": 248.0,
+    "audioFilename": "命日.wav",
     "notes": [
         {
             "id": "12-0001",

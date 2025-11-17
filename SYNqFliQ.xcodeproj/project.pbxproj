@@ -24,38 +24,38 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9C6CCC042EC88A7500CDB08F /* rhythm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = rhythm.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9C6CCC052EC88A7500CDB08F /* rhythmTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rhythmTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9C6CCC062EC88A7500CDB08F /* rhythmUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rhythmUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C6CCC042EC88A7500CDB08F /* SYNqFliQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYNqFliQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C6CCC052EC88A7500CDB08F /* SYNqFliQTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SYNqFliQTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C6CCC062EC88A7500CDB08F /* SYNqFliQUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SYNqFliQUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9C9486312EC88C3D005CE7CD /* Exceptions for "rhythmTests" folder in "rhythmTests" target */ = {
+		9C9486312EC88C3D005CE7CD /* Exceptions for "SYNqFliQTests" folder in "SYNqFliQTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				rhythmTests.swift,
+				SYNqFliQTests.swift,
 			);
-			target = 9C0B8E762EC880DC000337A1 /* rhythmTests */;
+			target = 9C0B8E762EC880DC000337A1 /* SYNqFliQTests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9C0B8E6C2EC880DA000337A1 /* rhythm */ = {
+		9C0B8E6C2EC880DA000337A1 /* SYNqFliQ */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = rhythm;
+			path = SYNqFliQ;
 			sourceTree = "<group>";
 		};
-		9C0B8E7A2EC880DC000337A1 /* rhythmTests */ = {
+		9C0B8E7A2EC880DC000337A1 /* SYNqFliQTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				9C9486312EC88C3D005CE7CD /* Exceptions for "rhythmTests" folder in "rhythmTests" target */,
+				9C9486312EC88C3D005CE7CD /* Exceptions for "SYNqFliQTests" folder in "SYNqFliQTests" target */,
 			);
-			path = rhythmTests;
+			path = SYNqFliQTests;
 			sourceTree = "<group>";
 		};
-		9C0B8E842EC880DC000337A1 /* rhythmUITests */ = {
+		9C0B8E842EC880DC000337A1 /* SYNqFliQUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = rhythmUITests;
+			path = SYNqFliQUITests;
 			sourceTree = "<group>";
 		};
 		9C0B8EA12EC887EF000337A1 /* Resources */ = {
@@ -93,22 +93,22 @@
 		9C0B8E612EC880DA000337A1 = {
 			isa = PBXGroup;
 			children = (
-				9C0B8E6C2EC880DA000337A1 /* rhythm */,
-				9C0B8E7A2EC880DC000337A1 /* rhythmTests */,
-				9C0B8E842EC880DC000337A1 /* rhythmUITests */,
+				9C0B8E6C2EC880DA000337A1 /* SYNqFliQ */,
+				9C0B8E7A2EC880DC000337A1 /* SYNqFliQTests */,
+				9C0B8E842EC880DC000337A1 /* SYNqFliQUITests */,
 				9C0B8EA12EC887EF000337A1 /* Resources */,
-				9C6CCC042EC88A7500CDB08F /* rhythm.app */,
-				9C6CCC052EC88A7500CDB08F /* rhythmTests.xctest */,
-				9C6CCC062EC88A7500CDB08F /* rhythmUITests.xctest */,
+				9C6CCC042EC88A7500CDB08F /* SYNqFliQ.app */,
+				9C6CCC052EC88A7500CDB08F /* SYNqFliQTests.xctest */,
+				9C6CCC062EC88A7500CDB08F /* SYNqFliQUITests.xctest */,
 			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		9C0B8E692EC880DA000337A1 /* rhythm */ = {
+		9C0B8E692EC880DA000337A1 /* SYNqFliQ */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9C0B8E8B2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "rhythm" */;
+			buildConfigurationList = 9C0B8E8B2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "SYNqFliQ" */;
 			buildPhases = (
 				9C0B8E672EC880DA000337A1 /* Frameworks */,
 				9C0B8E682EC880DA000337A1 /* Resources */,
@@ -119,19 +119,19 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9C0B8E6C2EC880DA000337A1 /* rhythm */,
+				9C0B8E6C2EC880DA000337A1 /* SYNqFliQ */,
 				9C0B8EA12EC887EF000337A1 /* Resources */,
 			);
-			name = rhythm;
+			name = SYNqFliQ;
 			packageProductDependencies = (
 			);
 			productName = rhythm;
-			productReference = 9C6CCC042EC88A7500CDB08F /* rhythm.app */;
+			productReference = 9C6CCC042EC88A7500CDB08F /* SYNqFliQ.app */;
 			productType = "com.apple.product-type.application";
 		};
-		9C0B8E762EC880DC000337A1 /* rhythmTests */ = {
+		9C0B8E762EC880DC000337A1 /* SYNqFliQTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9C0B8E8E2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "rhythmTests" */;
+			buildConfigurationList = 9C0B8E8E2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "SYNqFliQTests" */;
 			buildPhases = (
 				9C0B8E732EC880DC000337A1 /* Sources */,
 				9C0B8E742EC880DC000337A1 /* Frameworks */,
@@ -143,18 +143,18 @@
 				9C0B8E792EC880DC000337A1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				9C0B8E7A2EC880DC000337A1 /* rhythmTests */,
+				9C0B8E7A2EC880DC000337A1 /* SYNqFliQTests */,
 			);
-			name = rhythmTests;
+			name = SYNqFliQTests;
 			packageProductDependencies = (
 			);
 			productName = rhythmTests;
-			productReference = 9C6CCC052EC88A7500CDB08F /* rhythmTests.xctest */;
+			productReference = 9C6CCC052EC88A7500CDB08F /* SYNqFliQTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		9C0B8E802EC880DC000337A1 /* rhythmUITests */ = {
+		9C0B8E802EC880DC000337A1 /* SYNqFliQUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9C0B8E912EC880DC000337A1 /* Build configuration list for PBXNativeTarget "rhythmUITests" */;
+			buildConfigurationList = 9C0B8E912EC880DC000337A1 /* Build configuration list for PBXNativeTarget "SYNqFliQUITests" */;
 			buildPhases = (
 				9C0B8E7D2EC880DC000337A1 /* Sources */,
 				9C0B8E7E2EC880DC000337A1 /* Frameworks */,
@@ -166,13 +166,13 @@
 				9C0B8E832EC880DC000337A1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				9C0B8E842EC880DC000337A1 /* rhythmUITests */,
+				9C0B8E842EC880DC000337A1 /* SYNqFliQUITests */,
 			);
-			name = rhythmUITests;
+			name = SYNqFliQUITests;
 			packageProductDependencies = (
 			);
 			productName = rhythmUITests;
-			productReference = 9C6CCC062EC88A7500CDB08F /* rhythmUITests.xctest */;
+			productReference = 9C6CCC062EC88A7500CDB08F /* SYNqFliQUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -198,7 +198,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 9C0B8E652EC880DA000337A1 /* Build configuration list for PBXProject "rhythm" */;
+			buildConfigurationList = 9C0B8E652EC880DA000337A1 /* Build configuration list for PBXProject "SYNqFliQ" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -212,9 +212,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				9C0B8E692EC880DA000337A1 /* rhythm */,
-				9C0B8E762EC880DC000337A1 /* rhythmTests */,
-				9C0B8E802EC880DC000337A1 /* rhythmUITests */,
+				9C0B8E692EC880DA000337A1 /* SYNqFliQ */,
+				9C0B8E762EC880DC000337A1 /* SYNqFliQTests */,
+				9C0B8E802EC880DC000337A1 /* SYNqFliQUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -270,12 +270,12 @@
 /* Begin PBXTargetDependency section */
 		9C0B8E792EC880DC000337A1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9C0B8E692EC880DA000337A1 /* rhythm */;
+			target = 9C0B8E692EC880DA000337A1 /* SYNqFliQ */;
 			targetProxy = 9C0B8E782EC880DC000337A1 /* PBXContainerItemProxy */;
 		};
 		9C0B8E832EC880DC000337A1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9C0B8E692EC880DA000337A1 /* rhythm */;
+			target = 9C0B8E692EC880DA000337A1 /* SYNqFliQ */;
 			targetProxy = 9C0B8E822EC880DC000337A1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -555,7 +555,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		9C0B8E652EC880DA000337A1 /* Build configuration list for PBXProject "rhythm" */ = {
+		9C0B8E652EC880DA000337A1 /* Build configuration list for PBXProject "SYNqFliQ" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9C0B8E892EC880DC000337A1 /* Debug */,
@@ -564,7 +564,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9C0B8E8B2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "rhythm" */ = {
+		9C0B8E8B2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "SYNqFliQ" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9C0B8E8C2EC880DC000337A1 /* Debug */,
@@ -573,7 +573,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9C0B8E8E2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "rhythmTests" */ = {
+		9C0B8E8E2EC880DC000337A1 /* Build configuration list for PBXNativeTarget "SYNqFliQTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9C0B8E8F2EC880DC000337A1 /* Debug */,
@@ -582,7 +582,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9C0B8E912EC880DC000337A1 /* Build configuration list for PBXNativeTarget "rhythmUITests" */ = {
+		9C0B8E912EC880DC000337A1 /* Build configuration list for PBXNativeTarget "SYNqFliQUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9C0B8E922EC880DC000337A1 /* Debug */,

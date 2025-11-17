@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct rhythmApp: App {
+struct SYNqFliQApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

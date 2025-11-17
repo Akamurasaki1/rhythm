@@ -27,7 +27,8 @@ public struct SheetNote: Codable, Equatable {
     public var time: Double
     public var angleDegrees: Double
     public var normalizedPosition: NormalizedPosition
-
+    public var noteType:String?
+    public var holdEndTime:Double?
     public init(id: String, time: Double, angleDegrees: Double, normalizedPosition: NormalizedPosition) {
         self.id = id
         self.time = time
