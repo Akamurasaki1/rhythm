@@ -266,7 +266,7 @@ struct SongSelectionView: View {
                         .foregroundColor(.white)
                         .bold()
                         .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 10)
                         .background(Color.black.opacity(0.45))
                         .cornerRadius(8)
                         .padding(.bottom, 8)

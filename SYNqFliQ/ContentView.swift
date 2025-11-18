@@ -68,6 +68,7 @@ struct ContentView: View {
     // Combine 表示数（組み込みサンプル + bundled-sheets 内の譜面）
     private var sampleCount: Int { sampleDataSets.count + bundledSheets.count }
     
+    @EnvironmentObject private var appModel: AppModel
     // Background media
     @State private var backgroundImage: UIImage? = nil
     @State private var backgroundPlayer: AVQueuePlayer? = nil      // use AVQueuePlayer for looping support
@@ -90,6 +91,10 @@ struct ContentView: View {
     
     @State private var activeNotes: [ActiveNote] = []
     @State private var isPlaying = false
+    // 履歴用 state（isPlaying の近くに置くのが自然）
+    @State private var playHistory: [PlayRecord] = []
+    @State private var selectedRecord: PlayRecord? = nil
+    @State private var isShowingRecordDetail: Bool = false
     @State private var startDate: Date?
     @State private var showingEditor = false
     
@@ -148,7 +153,7 @@ struct ContentView: View {
     // パラメータ（プレイ中は隠す）
     @State private var approachDistanceFraction: Double = 0.25
     @State private var approachSpeed: Double = 800.0
-    
+    @State private var showingHistory: Bool = false
     // new: how long inner white fill takes as fraction of approachDuration
     @State private var holdFillDurationFraction: Double = 1.0
     // threshold for considering "very thin" (finish) of holdTrim (0..1)
@@ -156,6 +161,175 @@ struct ContentView: View {
     // release judgement windows (seconds before hold end)
     @State private var holdReleaseGoodWindow: Double = 0.25   // if released within this many seconds before end -> GOOD
     @State private var holdReleaseOkWindow: Double = 1.0      // if released within this many seconds before end -> OK (else MISS)
+    // 現在継続中のジェスチャ識別子（任意の一意値）
+    @State private var currentGestureID: UUID? = nil
+    // そのジェスチャ内で既にフリックを消費したかどうか
+    @State private var currentGestureHasFlicked: Bool = false
+    // Paste this into ContentView.swift, replacing the previous `if !isPlaying { ... }` block.
+    // It shows history-only cylindrical carousel, with a larger tile, best record kept left-most.
+    // Requires: playHistory: [PlayRecord], selectedRecord: PlayRecord?, isShowingRecordDetail: Bool,
+    //           initialScrollPerformed: Bool, appModel, bundledSheets, bundleURLForMedia(named:),
+    //           startPlayback(in:), stopPlayback(), isPlaying state, and sheet presentation for isShowingRecordDetail.
+    // Paste this INSIDE ContentView { ... } (once), near your other private helpers.
+    // Remove any other occurrences of these functions before pasting.
+
+    private func historyEntriesForCarousel() -> [PlayRecord] {
+        guard !playHistory.isEmpty else { return [] }
+        let best = playHistory.max(by: { $0.maxCombo < $1.maxCombo })
+        let recent = playHistory.filter { rec in
+            if let b = best { return rec.id != b.id }
+            return true
+        }
+        var entries: [PlayRecord] = []
+        if let b = best { entries.append(b) }
+        entries.append(contentsOf: Array(recent.prefix(9)))
+        return entries
+    }
+
+
+    @ViewBuilder
+    private func historyCarouselView(width: CGFloat) -> some View {
+        let entries = historyEntriesForCarousel()
+        if entries.isEmpty {
+            VStack {
+                Spacer()
+                Text("No play history")
+                    .foregroundColor(.white.opacity(0.7))
+                Spacer()
+            }
+            .frame(height: 160)
+        } else {
+            let tileWidth: CGFloat = 140
+            let spacing: CGFloat = 16
+
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: spacing) {
+                        // Use indices to avoid any ForEach generic inference issues
+                        ForEach(entries.indices, id: \.self) { idx in
+                            let record = entries[idx]
+                            GeometryReader { itemGeo in
+                                let frame = itemGeo.frame(in: .global)
+                                let centerX = UIScreen.main.bounds.width / 2
+                                let midX = frame.midX
+                                let diff = midX - centerX
+                                let normalized = max(-1.0, min(1.0, diff / (width * 0.5)))
+                                let rotateDeg = -normalized * 28.0
+                                let scale = 1.0 - abs(normalized) * 0.28
+                                let opacity = 1.0 - abs(normalized) * 0.6
+
+                                // Build thumbnail UIImage here (ContentView can access bundledSheets and bundleURLForMedia)
+                                var thumbnailImage: UIImage? = nil
+                                if let fn = record.sheetFilename,
+                                   let idxB = bundledSheets.firstIndex(where: { $0.filename == fn }) {
+                                    let sheet = bundledSheets[idxB].sheet
+                                    if let tn = sheet.thumbnailFilename ?? sheet.backgroundFilename {
+                                        if let url = bundleURLForMedia(named: tn),
+                                           let data = try? Data(contentsOf: url),
+                                           let ui = UIImage(data: data) {
+                                            thumbnailImage = ui
+                                        } else if let ui = UIImage(named: tn) {
+                                            thumbnailImage = ui
+                                        }
+                                    }
+                                }
+
+                                VStack(spacing: 6) {
+                                    HistoryThumbnailButton(record: record, thumbnail: thumbnailImage) {
+                                        selectedRecord = record
+                                        isShowingRecordDetail = true
+                                    }
+                                    .frame(width: tileWidth, height: 100)
+
+                                    Text(record.sheetTitle ?? "Unknown")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .lineLimit(1)
+                                        .frame(width: tileWidth)
+                                }
+                                .scaleEffect(scale)
+                                .opacity(opacity)
+                                .rotation3DEffect(.degrees(rotateDeg), axis: (x: 0, y: 1, z: 0), perspective: 0.7)
+                                .animation(.easeOut(duration: 0.12), value: normalized)
+                            }
+                            .frame(width: tileWidth, height: 140)
+                        }
+                    }
+                    .padding(.horizontal, (UIScreen.main.bounds.width - tileWidth) / 2 - spacing)
+                    .padding(.vertical, 8)
+                }
+                .onAppear {
+                    let entriesCount = entries.count
+                    if !initialScrollPerformed && entriesCount > 0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                            let initialIndex = max(0, entriesCount / 2)
+                            proxy.scrollTo(initialIndex, anchor: .center)
+                            initialScrollPerformed = true
+                        }
+                    }
+                }
+            }
+            .frame(height: 160)
+        }
+    }
+
+
+    // --- REPLACEMENT BODY BLOCK ---
+    // Replace your previous "if !isPlaying { HStack { ... } } else { ... }" block with this:
+    if !isPlaying {
+        VStack(spacing: 8) {
+            HStack {
+                Text("Play History")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                Spacer()
+                // Optional: button to clear history (if you implement)
+                // Button("Clear") { PlayHistoryStorage.save([]); loadPlayHistory() }
+            }
+            .padding(.horizontal)
+
+            // history-only carousel
+            historyCarouselView(width: geo.size.width)
+                .padding(.horizontal)
+
+            Spacer().frame(height: 8)
+        }
+        .frame(maxWidth: .infinity)
+    } else {
+        Spacer().frame(height: 8)
+    }
+
+    Spacer() // keep overall vertical spacing as before
+
+    // --- sheet for detail view ---
+    // Make sure somewhere in your view hierarchy you present this sheet; if you already present other sheets,
+    // merge this `.sheet` modifier with them. Example placement: after the closing of the GeometryReader's ZStack.
+    .sheet(isPresented: $isShowingRecordDetail) {
+        if let rec = selectedRecord {
+            PlayRecordDetailView(record: rec, onPreview: { record in
+                // preview handler: if the sheet file exists in bundledSheets, load and play it
+                if let fn = record.sheetFilename,
+                   let idx = bundledSheets.firstIndex(where: { $0.filename == fn }) {
+                    let sheet = bundledSheets[idx].sheet
+                    sheetNotesToPlay = sheet.notes
+                    notesToPlay = sheet.notes.asNotes()
+                    appModel.selectedSheetFilename = fn
+                    // stop any existing playback then start preview
+                    if isPlaying {
+                        stopPlayback()
+                    }
+                    // short delay to let state settle
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+                        startPlayback(in: UIScreen.main.bounds.size)
+                    }
+                } else {
+                    print("DBG: Preview: sheet not found for record \(record.sheetFilename ?? "nil")")
+                }
+            })
+        } else {
+            Text("No record selected")
+        }
+    }
     private func prepareAudioEngineIfNeeded(url: URL) {
         // teardown existing if any
         if let engine = audioEngine {
@@ -228,7 +402,7 @@ struct ContentView: View {
     private let goodWindowAfter: Double = 1.0
     
     // ノーツの寿命（spawn からの秒）
-    private let lifeDuration: Double = 2.5
+    private let lifeDuration: Double = 2
     
     // フリック判定パラメータ
     private let speedThreshold: CGFloat = 35.0
@@ -248,54 +422,153 @@ struct ContentView: View {
     // タップ三角の表示サイズ（既存の HoldView/Triangle の frame に合わせる）
     private let tapTriangleWidth: CGFloat = 44.0
     private let tapTriangleHeight: CGFloat = 22.0
+
+    // --- Add helper functions to load/save/apply history (add near other helper methods) ---
+    private func loadPlayHistory() {
+        playHistory = PlayHistoryStorage.load()
+    }
+    private func appendPlayHistoryRecord() {
+        // Called at end of a play to record the run
+        // We capture current selection via appModel.selectedSheetFilename / selectedSheet etc.
+        let rec = PlayRecord(
+            date: Date(),
+            sheetFilename: appModel.selectedSheetFilename,
+            sheetTitle: appModel.selectedSheet?.title,
+            score: score,
+            maxCombo: maxCombo,
+            perfectCount: perfectCount,
+            goodCount: goodCount,
+            okCount: okCount,
+            missCount: missCount
+        )
+        PlayHistoryStorage.append(rec)
+        // reload local cache
+        loadPlayHistory()
+    }
+
+    // Call loadPlayHistory() from .onAppear (add to onAppear block where you already load bundledSheets)
     // ContentView に追加する @State多点タップ
     @State private var touchToNote: [Int: UUID] = [:] // touch id -> activeNote id
-    private func prepareBackgroundIfNeeded(named filename: String?) {
-        // first tear down any existing background
+    // Prepare background; if forceReload == true it always reloads even when filename equals current
+    private func prepareBackgroundIfNeeded(named filename: String?, forceReload: Bool = false) {
+        // teardown existing video player
         if let player = backgroundPlayer {
             player.pause()
             backgroundPlayerLooper = nil
             backgroundPlayer = nil
         }
+
+        // if no filename requested, just clear
+        guard let filename = filename, !filename.isEmpty else {
+            backgroundImage = nil
+            backgroundFilename = nil
+            backgroundIsVideo = false
+            print("DBG: prepareBackgroundIfNeeded: no filename -> cleared")
+            return
+        }
+
+        // If filename is already loaded and not forcing reload, do nothing
+        if !forceReload, let current = backgroundFilename, current == filename {
+            print("DBG: prepareBackgroundIfNeeded: requested \(filename) already loaded -> skip")
+            return
+        }
+
+        // Set temporary state: clear previous image so UI won't show stale one while loading
         backgroundImage = nil
         backgroundIsVideo = false
         backgroundFilename = nil
 
-        guard let filename = filename, !filename.isEmpty else { return }
+        // Try to load by URL first (prefer Data->UIImage to avoid UIImage(named:) cache)
+        if let url = bundleURLForMedia(named: filename) {
+            let ext = url.pathExtension.lowercased()
+            if ["png", "jpg", "jpeg", "heic", "heif"].contains(ext) {
+                // load off main thread
+                DispatchQueue.global(qos: .userInitiated).async {
+                    if let data = try? Data(contentsOf: url), let img = UIImage(data: data) {
+                        DispatchQueue.main.async {
+                            self.backgroundImage = img
+                            self.backgroundIsVideo = false
+                            self.backgroundFilename = filename
+                            print("DBG: prepareBackgroundIfNeeded: loaded image from URL -> \(url.lastPathComponent)")
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            print("DBG: prepareBackgroundIfNeeded: failed to load image from URL \(url)")
+                            // fallback: try UIImage(named:) as last resort
+                            if let img = UIImage(named: filename) ?? UIImage(named: (filename as NSString).deletingPathExtension) {
+                                self.backgroundImage = img
+                                self.backgroundFilename = filename
+                                print("DBG: prepareBackgroundIfNeeded: fallback UIImage(named:) -> \(filename)")
+                            } else {
+                                print("DBG: prepareBackgroundIfNeeded: no image available for \(filename)")
+                            }
+                        }
+                    }
+                }
+                return
+            } else if ["mp4", "mov", "m4v"].contains(ext) {
+                // prepare video player on main thread
+                let item = AVPlayerItem(url: url)
+                let queue = AVQueuePlayer(items: [item])
+                let looper = AVPlayerLooper(player: queue, templateItem: item)
+                queue.isMuted = true
+                queue.actionAtItemEnd = .none
+                backgroundPlayerLooper = looper
+                backgroundPlayer = queue
+                backgroundIsVideo = true
+                backgroundFilename = filename
+                print("DBG: prepareBackgroundIfNeeded: prepared video -> \(filename)")
+                return
+            } else {
+                print("DBG: prepareBackgroundIfNeeded: unknown extension \(ext) for \(filename)")
+            }
+        }
 
-        guard let url = bundleURLForMedia(named: filename) else {
-            print("DBG: prepareBackgroundIfNeeded: media not found for \(filename)")
+        // If no URL found, try UIImage(named:) (assets catalog or bundled name)
+        if let img = UIImage(named: filename) ?? UIImage(named: (filename as NSString).deletingPathExtension) {
+            backgroundImage = img
+            backgroundIsVideo = false
+            backgroundFilename = filename
+            print("DBG: prepareBackgroundIfNeeded: loaded via UIImage(named:) -> \(filename)")
             return
         }
 
-        let ext = url.pathExtension.lowercased()
-        if ["png", "jpg", "jpeg", "heic", "heif"].contains(ext) {
-            // load image
-            if let data = try? Data(contentsOf: url), let img = UIImage(data: data) {
-                backgroundImage = img
-                backgroundIsVideo = false
-                backgroundFilename = filename
-                print("DBG: background image prepared: \(filename)")
-            } else {
-                print("DBG: background image load failed for \(url)")
+        // Last resort: look in Documents (some configs)
+        if let docs = try? FileManager.default.contentsOfDirectory(at: SheetFileManager.documentsURL, includingPropertiesForKeys: nil, options: []),
+           let found = docs.first(where: { $0.deletingPathExtension().lastPathComponent == (filename as NSString).deletingPathExtension }) {
+            DispatchQueue.global(qos: .userInitiated).async {
+                if let data = try? Data(contentsOf: found), let img = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self.backgroundImage = img
+                        self.backgroundIsVideo = false
+                        self.backgroundFilename = filename
+                        print("DBG: prepareBackgroundIfNeeded: loaded image from Documents -> \(found.lastPathComponent)")
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        print("DBG: prepareBackgroundIfNeeded: failed to load from Documents: \(found)")
+                    }
+                }
             }
-        } else if ["mp4", "mov", "m4v"].contains(ext) {
-            // prepare video with AVQueuePlayer + AVPlayerLooper for optional loop
-            let item = AVPlayerItem(url: url)
-            let queue = AVQueuePlayer(items: [item])
-            // optional: loop
-            let looper = AVPlayerLooper(player: queue, templateItem: item)
-            queue.isMuted = true // keep video muted by default; unmute if desired
-            queue.actionAtItemEnd = .none
-            backgroundPlayerLooper = looper
-            backgroundPlayer = queue
-            backgroundIsVideo = true
-            backgroundFilename = filename
-            print("DBG: background video prepared: \(filename)")
-        } else {
-            print("DBG: unknown background extension \(ext) for \(filename)")
+            return
         }
+
+        print("DBG: prepareBackgroundIfNeeded: could not locate resource for \(filename)")
     }
+    // Clear current background completely (teardown + forget filename)
+    private func clearBackground() {
+        if backgroundIsVideo {
+            backgroundPlayer?.pause()
+            backgroundPlayerLooper = nil
+            backgroundPlayer = nil
+        }
+        // drop image and filename
+        backgroundImage = nil
+        backgroundFilename = nil
+        backgroundIsVideo = false
+        print("DBG: background cleared")
+    }
+
     // Helper: find media file in bundle or Documents (images or videos)
     private func bundleURLForMedia(named mediaFilename: String?) -> URL? {
         guard let mediaFilename = mediaFilename, !mediaFilename.isEmpty else { return nil }
@@ -1248,6 +1521,7 @@ struct ContentView: View {
                         .zIndex(0)
                 } else {
                     Color.black
+                        .scaledToFill()
                         .frame(width: geo.size.width, height: geo.size.height)
                         .ignoresSafeArea()
                         .zIndex(0)
@@ -1330,15 +1604,61 @@ struct ContentView: View {
                         Text("Songs:")
                             .foregroundColor(.white)
                             .padding(.leading, 10)
-                        
+
                         if !isPlaying {
-                            carouselView(width: geo.size.width)
-                                .frame(height: 120)
-                                .padding(.trailing, 8)
+                            HStack(spacing: 12) {
+                                // --- LEFT: history column (best + recent 9 as buttons) ---
+                                VStack(spacing: 8) {
+                                    // 1) Best record (maxCombo)
+                                    if let best = playHistory.max(by: { $0.maxCombo < $1.maxCombo }) {
+                                        HistoryThumbnailButton(record: best) {
+                                            selectedRecord = best
+                                            isShowingRecordDetail = true
+                                        }
+                                        .frame(width: 84, height: 84)
+                                    } else {
+                                        // placeholder
+                                        Button(action: {}) {
+                                            VStack {
+                                                Image(systemName: "star")
+                                                Text("Best")
+                                                    .font(.caption2)
+                                            }
+                                            .foregroundColor(.white.opacity(0.7))
+                                            .frame(width: 84, height: 84)
+                                            .background(Color.black.opacity(0.25))
+                                            .cornerRadius(8)
+                                        }
+                                    }
+
+                                    // 2) Recent up to 9 (excluding the best entry to avoid duplicate)
+                                    let recent = playHistory.filter { rec in
+                                        if let best = playHistory.max(by: { $0.maxCombo < $1.maxCombo }) {
+                                            return rec.id != best.id
+                                        }
+                                        return true
+                                    }
+                                    ForEach(Array(recent.prefix(9)).indices, id: \.self) { idx in
+                                        let rec = recent[idx]
+                                        HistoryThumbnailButton(record: rec) {
+                                            selectedRecord = rec
+                                            isShowingRecordDetail = true
+                                        }
+                                        .frame(width: 64, height: 64)
+                                    }
+                                }
+                                .padding(.leading, 8)
+
+                                // --- RIGHT: existing carousel (unchanged) ---
+                                carouselView(width: geo.size.width) // replace with your existing call: carouselView(width: geo.size.width)
+                                    .frame(height: 120)
+                                    .padding(.trailing, 8)
+                            }
+                            .frame(height: 120)
                         } else {
                             Spacer().frame(height: 8)
                         }
-                        
+
                         Spacer()
                     }
                     .padding(.horizontal)
@@ -1525,7 +1845,28 @@ struct ContentView: View {
                         SheetEditorView()
                     }
                     .padding(.bottom, 16)
-                    
+                    .sheet(isPresented: $isShowingRecordDetail) {
+                        if let rec = selectedRecord {
+                            PlayRecordDetailView(record: rec, onPreview: { record in
+                                // プレビュー処理（bundledSheets から譜面を探して startPlayback）
+                                if let fn = record.sheetFilename,
+                                   let idx = bundledSheets.firstIndex(where: { $0.filename == fn }) {
+                                    let sheet = bundledSheets[idx].sheet
+                                    sheetNotesToPlay = sheet.notes
+                                    notesToPlay = sheet.notes.asNotes()
+                                    appModel.selectedSheetFilename = fn
+                                    if isPlaying { stopPlayback() }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+                                        startPlayback(in: UIScreen.main.bounds.size)
+                                    }
+                                } else {
+                                    print("DBG: Preview: sheet not found for record \(record.sheetFilename ?? "nil")")
+                                }
+                            })
+                        } else {
+                            Text("No record selected")
+                        }
+                    }
                     if !isPlaying {
                         HStack {
                             Text("Selected: \(selectedSampleIndex + 1)")
@@ -1552,7 +1893,9 @@ struct ContentView: View {
                             touchStartTime = Date()
                             touchStartLocation = value.startLocation
                             touchIsLongPress = false
-
+                            // 新規ジェスチャ開始時にジェスチャIDを割り当て、フリック消費フラグをクリア
+                            currentGestureID = UUID()
+                            currentGestureHasFlicked = false
                             // schedule long-press marker
                             let work = DispatchWorkItem {
                                 DispatchQueue.main.async {
@@ -1598,7 +1941,10 @@ struct ContentView: View {
 
                         // call hold touch ended (release)
                         handleHoldTouchEnded(at: value.location)
-
+                        
+                        // リセット: ジェスチャ終了時にフラグをクリアする
+                        currentGestureID = nil
+                        currentGestureHasFlicked = false
                         // reset touch state
                         touchStartTime = nil
                         touchStartLocation = nil
@@ -1628,6 +1974,7 @@ struct ContentView: View {
                           .onAppear {
                               // load bundledSheets first, then select
                               bundledSheets = loadBundledSheets()
+                              loadPlayHistory() // ← これを追加
                               if !bundledSheets.isEmpty {
                                   selectedSampleIndex = sampleDataSets.count // 最初の bundled sheet を選択
                               }
@@ -1645,6 +1992,29 @@ struct ContentView: View {
                               // quick persistent audio test (keeps player in state so we can verify playback)
                               
                           }
+            // Place this with other .sheet modifiers on your main View (for example where you currently have .sheet(isPresented: $isShowingResults) ...)
+            .sheet(isPresented: $isShowingRecordDetail) {
+                if let rec = selectedRecord {
+                    PlayRecordDetailView(record: rec, onPreview: { record in
+                        // preview handler: if the sheet file exists in bundledSheets, load and play it
+                        if let fn = record.sheetFilename,
+                           let idx = bundledSheets.firstIndex(where: { $0.filename == fn }) {
+                            let sheet = bundledSheets[idx].sheet
+                            sheetNotesToPlay = sheet.notes
+                            notesToPlay = sheet.notes.asNotes()
+                            appModel.selectedSheetFilename = fn
+                            if isPlaying { stopPlayback() }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+                                startPlayback(in: UIScreen.main.bounds.size)
+                            }
+                        } else {
+                            print("DBG: Preview: sheet not found for record \(record.sheetFilename ?? "nil")")
+                        }
+                    })
+                } else {
+                    Text("No record selected")
+                }
+            }
             // 表示用: 再生結果を sheet で表示
                           .sheet(isPresented: $isShowingResults, onDismiss: {
                               // 結果を閉じたときに必要ならリセット処理を入れる
@@ -1887,6 +2257,14 @@ struct ContentView: View {
         if testPlayer?.isPlaying == true {
             testPlayer?.stop()
         }
+        if let bgName = appModel.selectedSheet?.backgroundFilename {
+                // Load background for the song that is about to play
+                prepareBackgroundIfNeeded(named: bgName)
+            } else {
+                // optional: clear background or set default
+                backgroundImage = nil
+                backgroundFilename = nil
+            }
         
         testPlayer = nil
         print("DBG: startPlayback called isPlaying=\(isPlaying) isStopped=\(isStopped) selectedIndex=\(selectedSampleIndex)")
@@ -1976,7 +2354,7 @@ struct ContentView: View {
                 player.play(atTime: startAt)
                 audioStartDeviceTime = startAt
                 // prepare background media if the sheet has a backgroundFilename field
-                if let bgName = sheetForOffset?.backgroundFilename {
+                if let bgName = appModel.selectedSheet?.backgroundFilename {
                     prepareBackgroundIfNeeded(named: bgName)
                     // start video playback immediately (approx synced to audio)
                     if backgroundIsVideo, let bp = backgroundPlayer {
@@ -2520,6 +2898,8 @@ struct ContentView: View {
                     }
                     audioPlayer = nil
                     currentlyPlayingAudioFilename = nil
+                    // at the point where you finalize this play (inside finishWork's DispatchQueue.main.async)
+                    appendPlayHistoryRecord()
                     
                 }
             }
@@ -2563,6 +2943,8 @@ struct ContentView: View {
     }
     private func resetAll() {
         stopPlayback()
+        clearBackground()
+        audioPlayer=nil
         withAnimation(.easeOut(duration: 0.15)) {
             activeNotes.removeAll()
         }
@@ -2679,6 +3061,12 @@ struct ContentView: View {
 
     // グローバルフリック: 開始位置に最も近いノーツが hitRadius 内なら処理
     private func handleGlobalFlick(dragValue: DragGesture.Value, in size: CGSize) {
+        // もし現在のジェスチャが既にフリックを消費していたら無視する
+        if currentGestureHasFlicked {
+            return
+        }
+        // ここでこのジェスチャはフリックを消費したことにする
+        currentGestureHasFlicked = true
         let predicted = dragValue.predictedEndTranslation
         let flickVec = CGPoint(x: predicted.width, y: predicted.height)
         let flickSpeed = hypot(flickVec.x, flickVec.y)
@@ -2795,6 +3183,55 @@ struct HoldView: View {
                 )
         }
         .frame(width: size, height: size)
+    }
+}
+// Place this at file scope (outside ContentView struct)
+
+
+// Place this OUTSIDE ContentView (file scope), once. It must NOT reference ContentView members.
+
+import SwiftUI
+
+// ---------- Paste OUTSIDE ContentView (file scope), once ----------
+import SwiftUI
+
+struct HistoryThumbnailButton: View {
+    let record: PlayRecord
+    let thumbnail: UIImage?
+    var onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            ZStack {
+                if let ui = thumbnail {
+                    Image(uiImage: ui)
+                        .resizable()
+                        .scaledToFill()
+                        .clipped()
+                } else {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.gray.opacity(0.18))
+                }
+
+                VStack {
+                    HStack {
+                        Spacer()
+                        Text("C \(record.maxCombo)")
+                            .font(.caption2)
+                            .bold()
+                            .foregroundColor(.white)
+                            .padding(6)
+                            .background(Color.black.opacity(0.5))
+                            .cornerRadius(6)
+                            .padding(6)
+                    }
+                    Spacer()
+                }
+            }
+            .cornerRadius(10)
+            .shadow(color: Color.black.opacity(0.35), radius: 6, x: 0, y: 3)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

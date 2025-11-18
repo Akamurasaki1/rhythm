@@ -8,6 +8,7 @@
     "bpm": 100.0,
     "audioFilename": "mopemope.wav",
     "backgroundFilename":"mopemope.png",
+    "thumbnailFilename":"mopemope_j.png",
     "notes": [
         {
             "id": "12-0001",
