@@ -46,6 +46,7 @@ public struct Sheet: Codable, Equatable {
     public var id: String?
     public var bpm: Double?
     public var audioFilename: String?
+    public var backgroundFilename: String?
     public var notes: [SheetNote]
     public var offset: Double?
 
