@@ -1,0 +1,27 @@
+
+
+{
+    "version": 1,
+    "title": "MARENOL",
+    "difficulty": "Normal",
+    "level": 12,
+    "id": "12",
+    "bpm": 140.0,
+    "audioFilename": "MARENOL.mp3",
+    "thumbnailFilename":"MARENOL_j.png",
+    "notes": [
+        {
+            "id": "12-0001",
+            "time": 0.4,
+            "angleDegrees": -10.0,
+            "normalizedPosition": { "x": 0.45, "y": 0.35 }
+        },
+        {
+            "id": "12-0002",
+            "time": 0.7,
+            "angleDegrees": 20.0,
+            "normalizedPosition": { "x": 0.55, "y": 0.38 }
+        }
+    ]
+    
+}

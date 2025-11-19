@@ -4,74 +4,73 @@
 //
 //  Created by Karen Naito on 2025/11/18.
 //
+//
+// HistoryUIViews.swift
+// Thumbnail button, record detail, and list used by ContentView
+//
+
 import SwiftUI
 
-// small thumbnail button for a PlayRecord
-struct HistoryThumbnailButton: View {
-    let record: PlayRecord
-    var onTap: () -> Void
+// Thumbnail button used in the history carousel/list.
+// Keep this file-scope (outside ContentView) to avoid nested-type access issues.
+public struct HistoryThumbnailButton: View {
+    public let record: PlayRecord
+    public let thumbnail: UIImage?
+    public var onTap: () -> Void
 
-    var body: some View {
+    public init(record: PlayRecord, thumbnail: UIImage?, onTap: @escaping () -> Void) {
+        self.record = record
+        self.thumbnail = thumbnail
+        self.onTap = onTap
+    }
+
+    public var body: some View {
         Button(action: onTap) {
             ZStack {
-                // try to show sheet thumbnail or background if available via bundle lookup
-                if let filename = record.sheetFilename {
-                    // attempt to find image by filename without extension first via bundleURLForMedia or UIImage(named:)
-                    if let url = Bundle.main.url(forResource: (filename as NSString).deletingPathExtension, withExtension: "png", subdirectory: "bundled-backgrounds"),
-                       let data = try? Data(contentsOf: url),
-                       let ui = UIImage(data: data) {
-                        Image(uiImage: ui)
-                            .resizable()
-                            .scaledToFill()
-                            .clipped()
-                    } else if let img = UIImage(named: (record.sheetTitle ?? "")) {
-                        Image(uiImage: img)
-                            .resizable()
-                            .scaledToFill()
-                            .clipped()
-                    } else {
-                        // fallback colored box
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.gray.opacity(0.2))
-                    }
+                if let ui = thumbnail {
+                    Image(uiImage: ui)
+                        .resizable()
+                        .scaledToFill()
+                        .clipped()
                 } else {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.gray.opacity(0.2))
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.gray.opacity(0.18))
                 }
 
-                // small overlay: maxCombo / score
                 VStack {
-                    Spacer()
                     HStack {
                         Spacer()
-                        VStack(alignment: .trailing) {
-                            Text("C:\(record.maxCombo)")
-                                .font(.caption2)
-                                .bold()
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 4)
-                                .background(Color.black.opacity(0.45))
-                                .cornerRadius(6)
-                        }
+                        Text("C \(record.maxCombo)")
+                            .font(.caption2)
+                            .bold()
+                            .foregroundColor(.white)
+                            .padding(6)
+                            .background(Color.black.opacity(0.5))
+                            .cornerRadius(6)
+                            .padding(6)
                     }
+                    Spacer()
                 }
-                .padding(6)
             }
-            .cornerRadius(8)
-            .shadow(radius: 2)
+            .cornerRadius(10)
+            .shadow(color: Color.black.opacity(0.28), radius: 6, x: 0, y: 3)
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
 
-// detail modal for a record (shows stats and preview action)
-struct PlayRecordDetailView: View {
-    let record: PlayRecord
-    var onPreview: ((PlayRecord)->Void)? = nil
-    @Environment(\.presentationMode) var presentationMode
+// Detail modal for a PlayRecord
+public struct PlayRecordDetailView: View {
+    public let record: PlayRecord
+    public var onPreview: ((PlayRecord) -> Void)? = nil
+    @Environment(\.presentationMode) private var presentationMode
 
-    var body: some View {
+    public init(record: PlayRecord, onPreview: ((PlayRecord) -> Void)? = nil) {
+        self.record = record
+        self.onPreview = onPreview
+    }
+
+    public var body: some View {
         NavigationView {
             VStack(spacing: 16) {
                 Text(record.sheetTitle ?? "Unknown")
@@ -82,15 +81,9 @@ struct PlayRecordDetailView: View {
                     .foregroundColor(.secondary)
 
                 HStack(spacing: 12) {
-                    VStack {
-                        Text("Score"); Text("\(record.score)")
-                    }
-                    VStack {
-                        Text("Max Combo"); Text("\(record.maxCombo)")
-                    }
-                    VStack {
-                        Text("Perfect"); Text("\(record.perfectCount)")
-                    }
+                    VStack { Text("Score"); Text("\(record.score)") }
+                    VStack { Text("Max Combo"); Text("\(record.maxCombo)") }
+                    VStack { Text("Perfect"); Text("\(record.perfectCount)") }
                 }
                 .font(.headline)
                 .padding()
@@ -109,7 +102,6 @@ struct PlayRecordDetailView: View {
 
                     Button(action: {
                         onPreview?(record)
-                        presentationMode.wrappedValue.dismiss()
                     }) {
                         Text("Preview")
                             .bold()
@@ -123,6 +115,39 @@ struct PlayRecordDetailView: View {
             }
             .padding()
             .navigationBarTitle("Play Detail", displayMode: .inline)
+        }
+    }
+}
+
+// Simple list view for history (used when opening history as a list)
+public struct HistoryListView: View {
+    public let records: [PlayRecord]
+    public var onSelect: ((PlayRecord) -> Void)? = nil
+    @Environment(\.presentationMode) private var presentationMode
+
+    public init(records: [PlayRecord], onSelect: ((PlayRecord) -> Void)? = nil) {
+        self.records = records
+        self.onSelect = onSelect
+    }
+
+    public var body: some View {
+        NavigationView {
+            List(records) { r in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(r.sheetTitle ?? "Unknown").bold()
+                        Text(r.date, style: .date).font(.caption)
+                    }
+                    Spacer()
+                    Text("C \(r.maxCombo)").bold()
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onSelect?(r)
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+            .navigationBarTitle("Play History", displayMode: .inline)
         }
     }
 }

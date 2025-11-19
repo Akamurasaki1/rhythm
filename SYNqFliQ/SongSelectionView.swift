@@ -12,6 +12,37 @@ import UniformTypeIdentifiers
 import UIKit
 import AVKit
 
+struct SongCell_ClosureExample: View {
+    let song: SongSelectionView.SongSummary
+    @State private var chosenDifficulty: String? = nil
+    @EnvironmentObject private var appModel: AppModel
+
+    var onChoose: ((SongSelectionView.SongSummary, String?) -> Void)? = nil
+
+    var body: some View {
+        Button(action: {
+            // 1) Immediately persist selection into the shared model
+            appModel.selectedSheetFilename = song.id
+            appModel.selectedDifficulty = chosenDifficulty
+
+            // debug log - helps confirm propagation
+            print("DBG: SongCell (closure) tapped -> set appModel.selectedSheetFilename = \(String(describing: appModel.selectedSheetFilename))")
+
+            // 2) Call the onChoose closure so the caller can perform additional logic
+            onChoose?(song, chosenDifficulty)
+
+            // 3) Close the song-selection request (router/App should react)
+            appModel.closeSongSelection()
+        }) {
+            HStack {
+                // cell UI (thumbnail, title, etc.)
+                Text(song.title)
+                Spacer()
+            }
+            .padding()
+        }
+    }
+}
 struct SongSelectionView: View {
     // Public API: provide list of songs to show and callbacks
     struct SongSummary: Identifiable, Equatable {
