@@ -1,0 +1,21 @@
+
+{
+    "version": 1,
+    "title": "ATHAZA",
+    "difficulty": "easy",
+    "level": 12,
+    "id": "12",
+    "bpm": 280.0,
+    "audioFilename": "ATHAZA.mp3",
+    "backgroundFilename":"ATHAZA.png",
+    "thumbnailFilename":"ATHAZA_j.png",
+    "notes": [
+        {
+            "id": "12-0001",
+            "time": 0.4,
+            "angleDegrees": -10.0,
+            "normalizedPosition": { "x": 0.45, "y": 0.35 }
+        }
+    ]
+    
+}

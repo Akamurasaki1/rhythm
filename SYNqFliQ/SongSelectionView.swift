@@ -3,7 +3,7 @@
 //  SYNqFliQ
 //
 //  Created by Karen Naito on 2025/11/18.
-//  Revised by assistant for compile / isolation and crash fix
+//  Revised by assistant: unified difficulty-selection flow and safe BundledSheet usage
 //
 
 import SwiftUI
@@ -12,41 +12,45 @@ import UniformTypeIdentifiers
 import UIKit
 import AVKit
 
+// Lightweight example cell using closure style (kept for reference / reuse)
 struct SongCell_ClosureExample: View {
     let song: SongSelectionView.SongSummary
     @State private var chosenDifficulty: String? = nil
     @EnvironmentObject private var appModel: AppModel
-
     var onChoose: ((SongSelectionView.SongSummary, String?) -> Void)? = nil
 
     var body: some View {
         Button(action: {
-            // 1) Immediately persist selection into the shared model
+            // Persist selection into the shared model
             appModel.selectedSheetFilename = song.id
             appModel.selectedDifficulty = chosenDifficulty
 
-            // debug log - helps confirm propagation
             print("DBG: SongCell (closure) tapped -> set appModel.selectedSheetFilename = \(String(describing: appModel.selectedSheetFilename))")
 
-            // 2) Call the onChoose closure so the caller can perform additional logic
+            // Notify caller
             onChoose?(song, chosenDifficulty)
 
-            // 3) Close the song-selection request (router/App should react)
+            // Close selection UI
             appModel.closeSongSelection()
         }) {
             HStack {
-                // cell UI (thumbnail, title, etc.)
                 Text(song.title)
                 Spacer()
+                if let idx = song.bundledIndex, appModel.bundledSheets.indices.contains(idx) {
+                    if let diff = appModel.bundledSheets[idx].sheet.difficulty {
+                        Text(diff).font(.caption).foregroundColor(.secondary)
+                    }
+                }
             }
             .padding()
         }
     }
 }
+
 struct SongSelectionView: View {
     // Public API: provide list of songs to show and callbacks
     struct SongSummary: Identifiable, Equatable {
-        let id: String        // e.g. sheet.id or filename
+        let id: String        // e.g. sheet.filename
         let title: String
         let thumbnailFilename: String? // optional image name in bundle / Documents
         let bundledIndex: Int? // optional source index
@@ -54,10 +58,12 @@ struct SongSelectionView: View {
 
     var songs: [SongSummary] = []
     var onClose: () -> Void = { }
-    // When a song is chosen, we call onChoose(song, difficulty)
-    var onChoose: (SongSummary, String) -> Void = { _, _ in }
+    // onChoose passes selected SongSummary and an optional difficulty string (nil => default/unknown)
+    var onChoose: (SongSummary, String?) -> Void = { _, _ in }
 
-    init(songs: [SongSummary] = [], onClose: @escaping () -> Void = {}, onChoose: @escaping (SongSummary, String) -> Void = { _, _ in }) {
+    init(songs: [SongSummary] = [],
+         onClose: @escaping () -> Void = {},
+         onChoose: @escaping (SongSummary, String?) -> Void = { _, _ in }) {
         self.songs = songs
         self.onClose = onClose
         self.onChoose = onChoose
@@ -70,7 +76,7 @@ struct SongSelectionView: View {
     // MARK: - Inner View
     struct SongSelectView: View {
         var songs: [SongSummary]
-        var onChoose: (SongSummary, String) -> Void
+        var onChoose: (SongSummary, String?) -> Void
         var onCancel: () -> Void
 
         // UI state
@@ -82,6 +88,12 @@ struct SongSelectionView: View {
         // carousel internal
         @State private var initialScrollPerformed: Bool = false
         @State private var selectedIndex: Int = 0
+
+        // difficulty picker state (confirmationDialog)
+        @EnvironmentObject private var appModel: AppModel
+        @State private var showingDifficultyPicker: Bool = false
+        @State private var difficultyCandidates: [BundledSheet] = []
+        @State private var pendingSongTitle: String = ""
 
         // appearance
         private let carouselItemWidth: CGFloat = 100
@@ -193,13 +205,23 @@ struct SongSelectionView: View {
                     }
                     .zIndex(20)
                 }
+                // Difficulty confirmation dialog using the difficultyCandidates prepared earlier
+                .confirmationDialog("Select difficulty for \"\(pendingSongTitle)\"", isPresented: $showingDifficultyPicker, titleVisibility: .visible) {
+                    ForEach(difficultyCandidates.indices, id: \.self) { i in
+                        let entry = difficultyCandidates[i]
+                        let label = entry.sheet.difficulty ?? "Default"
+                        Button(label) {
+                            performSelect(entry: entry, forSongTitle: pendingSongTitle)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) { /* nothing */ }
+                }
             }
         }
 
         // MARK: - Carousel
         @ViewBuilder
         private func carouselView(size: CGSize) -> some View {
-            // If there are no songs, show a safe placeholder instead of attempting to index songs[0]
             if songs.isEmpty {
                 VStack {
                     Spacer()
@@ -249,10 +271,8 @@ struct SongSelectionView: View {
                                     .onTapGesture {
                                         withAnimation {
                                             selectedIndex = i
-                                            // focus this tile
                                             focusedIndex = i
                                             showDifficulty = true
-                                            // scroll to center
                                             proxy.scrollTo(i, anchor: .center)
                                         }
                                     }
@@ -322,21 +342,70 @@ struct SongSelectionView: View {
             }
         }
 
-        // MARK: - helpers
+        // MARK: - selection helpers
         private func choose(song: SongSummary, difficulty: String) {
-            onChoose(song, difficulty)
+            // If focused tile used quick-difficulty buttons, prefer to find matching entry by title+difficulty
+            // Attempt to find a BundledSheet for this title/difficulty; if not found, fall back to bundledIndex if present.
+            if let entry = findEntry(for: song, matchingDifficulty: difficulty) {
+                performSelect(entry: entry, forSongTitle: song.title)
+            } else if let idx = song.bundledIndex, appModel.bundledSheets.indices.contains(idx) {
+                performSelect(entry: appModel.bundledSheets[idx], forSongTitle: song.title)
+            } else {
+                // as last resort call onChoose with chosen difficulty and no filename change
+                onChoose(song, difficulty)
+                appModel.closeSongSelection()
+            }
         }
 
-        private func closeFocus() {
-            focusedIndex = nil
-            showDifficulty = false
-            dragOffsetY = 0
+        private func performSelect(entry: BundledSheet, forSongTitle title: String) {
+            // persist selection into model
+            appModel.selectedSheetFilename = entry.filename
+            appModel.selectedDifficulty = entry.sheet.difficulty
+            print("DBG: SongSelection selected -> filename=\(entry.filename) difficulty=\(String(describing: entry.sheet.difficulty))")
+
+            // notify caller and close
+            onChoose(SongSummary(id: entry.filename, title: entry.sheet.title, thumbnailFilename: entry.sheet.thumbnailFilename, bundledIndex: nil), entry.sheet.difficulty)
+            appModel.closeSongSelection()
+        }
+
+        private func findEntry(for song: SongSummary, matchingDifficulty diff: String) -> BundledSheet? {
+            let candidates = appModel.bundledSheets.filter { $0.sheet.title == song.title }
+            return candidates.first(where: { ($0.sheet.difficulty ?? "") == diff })
+        }
+
+        // When user taps a carousel tile we either pick the only candidate, or show a difficulty picker
+        private func selectOrShowPicker(for song: SongSummary) {
+            let candidates = appModel.bundledSheets.filter { $0.sheet.title == song.title }
+            if candidates.isEmpty {
+                if let idx = song.bundledIndex, appModel.bundledSheets.indices.contains(idx) {
+                    performSelect(entry: appModel.bundledSheets[idx], forSongTitle: song.title)
+                } else {
+                    print("DBG: No candidate sheets found for \(song.title)")
+                }
+                return
+            }
+
+            if candidates.count == 1 {
+                performSelect(entry: candidates[0], forSongTitle: song.title)
+                return
+            }
+
+            // multiple difficulties available -> show confirmation dialog
+            difficultyCandidates = candidates.sorted { ($0.sheet.difficulty ?? "") < ($1.sheet.difficulty ?? "") }
+            pendingSongTitle = song.title
+            showingDifficultyPicker = true
         }
 
         private func onCancelIfNeeded() {
             if focusedIndex == nil {
                 onCancel()
             }
+        }
+
+        private func closeFocus() {
+            focusedIndex = nil
+            showDifficulty = false
+            dragOffsetY = 0
         }
 
         // Simple bundle image lookup
@@ -359,7 +428,7 @@ struct SongSelectionView: View {
             return nil
         }
 
-        // Minimal import handler (stub for later expansion)
+        // Minimal import handler (kept for parity)
         func handleImportedFile(url: URL) {
             DispatchQueue.global(qos: .userInitiated).async {
                 var didStart = false
@@ -374,7 +443,6 @@ struct SongSelectionView: View {
                     let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first!
                     let dest = docs.appendingPathComponent(url.lastPathComponent)
                     if fm.fileExists(atPath: dest.path) {
-                        // replace or skip as desired
                         try fm.removeItem(at: dest)
                     }
                     try fm.copyItem(at: url, to: dest)
