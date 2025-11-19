@@ -3,7 +3,7 @@
 //  SYNqFliQ
 //
 //  Created by Karen Naito on 2025/11/18.
-//  Revised by assistant: unified difficulty-selection flow and safe BundledSheet usage
+//  Revised by assistant: unified difficulty-selection flow and ensured difficulty buttons pick correct file
 //
 
 import SwiftUI
@@ -98,7 +98,7 @@ struct SongSelectionView: View {
         // appearance
         private let carouselItemWidth: CGFloat = 100
         private let carouselItemSpacing: CGFloat = 12
-        private let tileSize = CGSize(width: 160, height: 96)
+        private let tileSize = CGSize(width: 160, height: 160) // ジャケットのサイズ
         private let spacing: CGFloat = 18.0
 
         var body: some View {
@@ -157,12 +157,14 @@ struct SongSelectionView: View {
                                 .offset(y: min(dragOffsetY, 200))
                                 .transition(.move(edge: .bottom).combined(with: .scale))
                                 .zIndex(10)
-
+// Base → Flow → Core → Limit → Infinity → Void（隠し1） → Null（隠し2）
                             if showDifficulty {
                                 HStack(spacing: 18) {
-                                    difficultyButton("Easy") { choose(song: song, difficulty: "Easy") }
-                                    difficultyButton("Normal") { choose(song: song, difficulty: "Normal") }
-                                    difficultyButton("Hard") { choose(song: song, difficulty: "Hard") }
+                                    difficultyButton("Base") { choose(song: song, difficulty: "Base") }
+                                    difficultyButton("Flow") { choose(song: song, difficulty: "Flow") }
+                                    difficultyButton("Core") { choose(song: song, difficulty: "Core") }
+                                    difficultyButton("Limit"){choose(song: song, difficulty:"Limit")}
+                                    difficultyButton("Infinity"){choose(song:song, difficulty:"Infinity")}
                                 }
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                                 .zIndex(9)
@@ -334,7 +336,7 @@ struct SongSelectionView: View {
                 Text(text)
                     .font(.headline)
                     .padding(.vertical, 10)
-                    .padding(.horizontal, 18)
+                    .padding(.horizontal, 10)
                     .background(Color.black.opacity(0.6))
                     .foregroundColor(.white)
                     .cornerRadius(10)
@@ -344,17 +346,22 @@ struct SongSelectionView: View {
 
         // MARK: - selection helpers
         private func choose(song: SongSummary, difficulty: String) {
-            // If focused tile used quick-difficulty buttons, prefer to find matching entry by title+difficulty
-            // Attempt to find a BundledSheet for this title/difficulty; if not found, fall back to bundledIndex if present.
+            // Attempt to find a BundledSheet for this title+difficulty
             if let entry = findEntry(for: song, matchingDifficulty: difficulty) {
                 performSelect(entry: entry, forSongTitle: song.title)
-            } else if let idx = song.bundledIndex, appModel.bundledSheets.indices.contains(idx) {
-                performSelect(entry: appModel.bundledSheets[idx], forSongTitle: song.title)
-            } else {
-                // as last resort call onChoose with chosen difficulty and no filename change
-                onChoose(song, difficulty)
-                appModel.closeSongSelection()
+                return
             }
+
+            // fallback: if the provided bundledIndex points to an entry, use it
+            if let idx = song.bundledIndex, appModel.bundledSheets.indices.contains(idx) {
+                performSelect(entry: appModel.bundledSheets[idx], forSongTitle: song.title)
+                return
+            }
+
+            // fallback: if no match, notify caller with difficulty but without filename
+            print("DBG: choose: no matching entry for title=\(song.title) difficulty=\(difficulty)")
+            onChoose(song, difficulty)
+            appModel.closeSongSelection()
         }
 
         private func performSelect(entry: BundledSheet, forSongTitle title: String) {
@@ -369,8 +376,27 @@ struct SongSelectionView: View {
         }
 
         private func findEntry(for song: SongSummary, matchingDifficulty diff: String) -> BundledSheet? {
+            // Prefer exact match of difficulty string (case-sensitive)
             let candidates = appModel.bundledSheets.filter { $0.sheet.title == song.title }
-            return candidates.first(where: { ($0.sheet.difficulty ?? "") == diff })
+            if let exact = candidates.first(where: { ($0.sheet.difficulty ?? "") == diff }) {
+                return exact
+            }
+            // fallback: try case-insensitive match
+            if let ci = candidates.first(where: { ($0.sheet.difficulty ?? "").lowercased() == diff.lowercased() }) {
+                return ci
+            }
+            // fallback: if diff is a number (e.g. "4" or "Level 4"), attempt to match numeric suffix
+            let numeric = diff.compactMap { $0.wholeNumberValue }.map { String($0) }.joined()
+            if !numeric.isEmpty {
+                if let byNum = candidates.first(where: {
+                    let s = ($0.sheet.difficulty ?? "")
+                    return s.contains(numeric) || s.components(separatedBy: CharacterSet.decimalDigits.inverted).joined() == numeric
+                }) {
+                    return byNum
+                }
+            }
+            // nothing matched
+            return nil
         }
 
         // When user taps a carousel tile we either pick the only candidate, or show a difficulty picker
@@ -409,11 +435,13 @@ struct SongSelectionView: View {
         }
 
         // Simple bundle image lookup
+        // Simple bundle image lookup (fixed ternary operator)
         private func bundleImageURL(named imageFilename: String) -> URL? {
             guard !imageFilename.isEmpty else { return nil }
             let ext = (imageFilename as NSString).pathExtension
             let name = (imageFilename as NSString).deletingPathExtension
 
+            // prefer bundled-resources subdirectory, fall back to top-level bundle, then Documents
             if let url = Bundle.main.url(forResource: name, withExtension: ext.isEmpty ? "png" : ext, subdirectory: "bundled-resources") {
                 return url
             }

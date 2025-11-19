@@ -55,16 +55,28 @@ struct SYNqFliQApp: App {
         }
     }
 
+    // Replace the existing songSelectionView() implementation with this function.
+    // This groups bundledSheets by sheet.title and builds one SongSummary per title
+    // (uses the first occurrence as the representative entry).
+
     @ViewBuilder
     private func songSelectionView() -> some View {
-        let summaries: [SongSelectionView.SongSummary] = appModel.bundledSheets.enumerated().map { idx, pair in
-            SongSelectionView.SongSummary(
-                id: pair.filename,
-                title: pair.sheet.title,
-                thumbnailFilename: pair.sheet.thumbnailFilename ?? pair.sheet.backgroundFilename,
-                bundledIndex: idx
+        // Build entries with index so we can keep bundledIndex pointing to a concrete file
+        let entries = appModel.bundledSheets.enumerated().map { (index: $0.offset, entry: $0.element) }
+        // Group by title
+        let groupedByTitle = Dictionary(grouping: entries, by: { $0.entry.sheet.title })
+        // Create one SongSummary per title (use first occurrence as representative)
+        let summaries: [SongSelectionView.SongSummary] = groupedByTitle.map { (_, list) in
+            let representative = list[0]
+            return SongSelectionView.SongSummary(
+                id: representative.entry.filename,
+                title: representative.entry.sheet.title,
+                thumbnailFilename: representative.entry.sheet.thumbnailFilename ?? representative.entry.sheet.backgroundFilename,
+                bundledIndex: representative.index
             )
         }
+        // Optional: sort alphabetically (or keep original order as you prefer)
+        .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
 
         SongSelectionView(songs: summaries, onClose: {
             DispatchQueue.main.async {
