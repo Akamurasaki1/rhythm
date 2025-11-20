@@ -166,10 +166,35 @@ struct ContentView: View {
     private let hitRadius: CGFloat = 110.0
     private let tapHitRadius: CGFloat = 10.0
     private let tapEarliestBeforeHit: Double = 0.3
-    @State private var approachDistanceFraction: Double = 0.25
-    @State private var approachSpeed: Double = 800.0
-    @State private var holdFillDurationFraction: Double = 1.0
-    @State private var holdFinishTrimThreshold: Double = 0.02
+    // @State private var approachDistanceFraction: Double = 0.25
+    // @State private var approachSpeed: Double = 800.0
+    // @State private var holdFillDurationFraction: Double = 1.0
+    // @State private var holdFinishTrimThreshold: Double = 0.02
+    // --- Insert into ContentView (inside the View struct) ---
+
+    @EnvironmentObject private var settings: SettingsStore
+
+    // Explicit per-property Bindings to avoid keyPath subscript issues and make intent clear
+    private var approachDistanceFractionBinding: Binding<Double> {
+        Binding(get: { settings.approachDistanceFraction },
+                set: { settings.approachDistanceFraction = $0 })
+    }
+    private var approachSpeedBinding: Binding<Double> {
+        Binding(get: { settings.approachSpeed },
+                set: { settings.approachSpeed = $0 })
+    }
+    private var holdFillDurationFractionBinding: Binding<Double> {
+        Binding(get: { settings.holdFillDurationFraction },
+                set: { settings.holdFillDurationFraction = $0 })
+    }
+    private var holdFinishTrimThresholdBinding: Binding<Double> {
+        Binding(get: { settings.holdFinishTrimThreshold },
+                set: { settings.holdFinishTrimThreshold = $0 })
+    }
+
+    // Helpers for CGFloat conversions where needed
+    private func cg(_ value: Double) -> CGFloat { CGFloat(value) }
+    private func cgKeyPath(_ value: Double) -> CGFloat { CGFloat(value) } // convenience alias
     private let longPressThreshold: TimeInterval = 0.35
     // hold release judgement windows (add near other timing constants)
     private let holdReleaseGoodWindow: Double = 0.25
@@ -251,6 +276,7 @@ struct ContentView: View {
     }
     // MARK: - Body
     var body: some View {
+        
         GeometryReader { geo in
             ZStack {
                 // debug: show game coordinate bounds
@@ -393,34 +419,34 @@ struct ContentView: View {
                     if !isPlaying {
                         VStack(spacing: 8) {
                             HStack {
-                                Text("Approach dist (fraction): \(String(format: "%.2f", approachDistanceFraction))")
+                                Text("Approach dist (fraction): \(String(format: "%.2f", settings.approachDistanceFraction))")
                                     .foregroundColor(.white)
                                 Spacer()
                             }
-                            Slider(value: $approachDistanceFraction, in: 0.05...1.5)
+                            Slider(value: approachDistanceFractionBinding, in: 0.05...1.5)
                             HStack {
-                                Text("Approach speed (pts/s): \(Int(approachSpeed))")
+                                Text("Approach speed (pts/s): \(Int(settings.approachSpeed))")
                                     .foregroundColor(.white)
                                 Spacer()
-                                let exampleDistance = approachDistanceFraction * min(geo.size.width, geo.size.height)
-                                let derivedDuration = exampleDistance / max(approachSpeed, 1.0)
+                                let exampleDistance = settings.approachDistanceFraction * min(geo.size.width, geo.size.height)
+                                let derivedDuration = exampleDistance / max(settings.approachSpeed, 1.0)
                                 Text("例 dur: \(String(format: "%.2f", derivedDuration))s")
                                     .foregroundColor(.gray)
                             }
-                            Slider(value: $approachSpeed, in: 100...3000)
+                            Slider(value: $settings.approachSpeed, in: 100...3000)
                             VStack {
                                 HStack {
-                                    Text("Hold fill fraction: \(String(format: "%.2f", holdFillDurationFraction))")
+                                    Text("Hold fill fraction: \(String(format: "%.2f", settings.holdFillDurationFraction))")
                                         .foregroundColor(.white)
                                     Spacer()
                                 }
-                                Slider(value: $holdFillDurationFraction, in: 0.2...1.8)
+                                Slider(value: $settings.holdFillDurationFraction, in: 0.2...1.8)
                                 HStack {
-                                    Text("Hold finish trim threshold: \(String(format: "%.3f", holdFinishTrimThreshold))")
+                                    Text("Hold finish trim threshold: \(String(format: "%.3f", settings.holdFinishTrimThreshold))")
                                         .foregroundColor(.white)
                                     Spacer()
                                 }
-                                Slider(value: $holdFinishTrimThreshold, in: 0.001...0.08)
+                                Slider(value: $settings.holdFinishTrimThreshold, in: 0.001...0.08)
                             }
                         }
                         .padding(.horizontal)
@@ -431,17 +457,23 @@ struct ContentView: View {
                 } // VStack
 
                 // Active notes rendering
+                // Active notes rendering (差し替え用)
                 ForEach(activeNotes) { a in
+                    // helper: safe positions with fallback
+                    let pos = (a.position == .zero) ? a.targetPosition : a.position
+                    let pos2 = (a.position2 == nil || a.position2 == .zero) ? a.targetPosition : a.position2!
+
                     if a.isTap {
                         TriangleUp()
                             .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .top, endPoint: .bottom))
                             .frame(width: 44, height: 22)
-                            .position(a.position)
+                            .position(pos)
                             .zIndex(3)
+
                         TriangleDown()
                             .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .bottom, endPoint: .top))
                             .frame(width: 44, height: 22)
-                            .position(a.position2 ?? a.targetPosition)
+                            .position(pos2)
                             .zIndex(3)
                             .opacity(a.isClear ? 1.0 : 0.95)
                     } else if a.isHold {
@@ -452,7 +484,7 @@ struct ContentView: View {
                         RodView(angleDegrees: a.angleDegrees)
                             .frame(width: 160, height: 10)
                             .opacity(a.isClear ? 1.0 : 0.35)
-                            .position(a.position)
+                            .position(pos)
                             .zIndex(a.isClear ? 2 : 1)
                             .gesture(
                                 DragGesture(minimumDistance: 8)
@@ -462,7 +494,6 @@ struct ContentView: View {
                             )
                     }
                 }
-
                 // Bottom controls
                 VStack {
                     Spacer()
@@ -913,7 +944,7 @@ struct ContentView: View {
             }
 
             if note.isHold {
-                let fillDuration = max(0.0, note.approachDuration * holdFillDurationFraction)
+                let fillDuration = max(0.0, note.approachDuration * settings.holdFillDurationFraction)
                 let fillEndTime = (note.approachStartDeviceTime != nil) ? (note.approachStartDeviceTime! + fillDuration) : (note.approachStartWallTime ?? Date().timeIntervalSince1970 + fillDuration)
                 if nowDev < fillEndTime {
                     let fillT = (nowDev - (note.approachStartDeviceTime ?? note.approachStartWallTime ?? nowDev)) / max(0.00001, fillDuration)
@@ -1074,8 +1105,8 @@ struct ContentView: View {
             if nx.isNaN || ny.isNaN || nx.isInfinite || ny.isInfinite { continue }
             let clampedX = min(max(0.0, nx), 1.0)
             let clampedY = min(max(0.0, ny), 1.0)
-            let approachDistance = approachDistanceFraction * min(size.width, size.height)
-            let approachDuration = approachDistance / max(approachSpeed, 1.0)
+            let approachDistance = settings.approachDistanceFraction * min(size.width, size.height)
+            let approachDuration = approachDistance / max(settings.approachSpeed, 1.0)
             let spawnTime = max(0.0, note.time - approachDuration)
             let target = CGPoint(x: clampedX * size.width, y: clampedY * size.height)
             let theta = CGFloat(note.angleDegrees) * .pi / 180.0
@@ -1129,7 +1160,7 @@ struct ContentView: View {
                                 self.activeNotes[idx].position2 = target
                             }
                         }
-                        let fillDur = max(0.0, approachDuration * max(0.0, min(2.0, holdFillDurationFraction)))
+                        let fillDur = max(0.0, approachDuration * max(0.0, min(2.0, settings.holdFillDurationFraction)))
                         DispatchQueue.main.asyncAfter(deadline: .now() + fillDur) {
                             guard let idx2 = self.activeNotes.firstIndex(where: { $0.id == newID }) else { return }
                             self.activeNotes[idx2].holdStarted = true

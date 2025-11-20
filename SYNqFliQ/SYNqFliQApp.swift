@@ -5,7 +5,9 @@ struct SYNqFliQApp: App {
     enum AppState { case title, songSelect, playing }
 
     @StateObject private var appModel = AppModel()
-    @State private var appState: AppState = .title
+        @StateObject private var settings = SettingsStore()
+        @State private var appState: AppState = .title
+        @State private var showingSettings: Bool = false
 
     var body: some Scene {
         WindowGroup {
@@ -23,18 +25,29 @@ struct SYNqFliQApp: App {
                                     appState = .songSelect
                                 }
                             }
-                        }, onOpenSettings: {}, onShowCredits: {})
+                        }, onOpenSettings: {
+                            // TitleView の設定ボタンから呼び出される想定
+                            showingSettings = true
+                        }, onShowCredits: {})
                         .environmentObject(appModel)
+                        .environmentObject(settings)
+                        
 
                     case .songSelect:
                         songSelectionView()
                             .environmentObject(appModel)
+                            .environmentObject(settings)
 
                     case .playing:
                         ContentView()
                             .environmentObject(appModel)
+                            .environmentObject(settings)
                     }
                 }
+            }// settings sheet presentation
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+                    .environmentObject(settings)
             }
             .onChange(of: appModel.showingSongSelection) { showing in
                 print("DBG: App observed appModel.showingSongSelection = \(showing) (selected = \(String(describing: appModel.selectedSheetFilename)))")

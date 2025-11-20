@@ -98,16 +98,40 @@ struct SongSelectionView: View {
         // appearance
         private let carouselItemWidth: CGFloat = 100
         private let carouselItemSpacing: CGFloat = 12
-        private let tileSize = CGSize(width: 160, height: 160) // ジャケットのサイズ
+        // 動的にタイルサイズを計算するヘルパー（SongSelectView の中に追加）
+        private func tileSize(for containerWidth: CGFloat) -> CGSize {
+            // 目的: ジャケットは正方形を想定。containerWidth に対する割合で決めつつ
+            // 最小・最大を clamp して極端な端末でも崩れないようにする。
+            // 調整例: 画面幅の 36% を基本に、最小 220pt、最大 500pt に制限。
+            let side = min(480, max(220, containerWidth * 0.33))
+            return CGSize(width: side, height: side)
+        }// ジャケットのサイズ
         private let spacing: CGFloat = 18.0
 
         var body: some View {
             GeometryReader { geo in
                 ZStack {
-                    Color.black.ignoresSafeArea()
+                    // Background: prefer asset named "selection_bg" (no extension).
+                    // If the asset is missing, fall back to solid black.
+                    Group {
+                        if UIImage(named: "selection_bg") != nil {
+                            Image("selection_bg")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: geo.size.width, height: geo.size.height)
+                                .clipped()
+                        } else {
+                            Color.black
+                        }
+                    }
+                    .ignoresSafeArea()
+
+                    // Dim overlay to keep UI readable on top of bright images
+                    Color.black.opacity(0.35)
+                        .ignoresSafeArea()
 
                     VStack {
-                        Spacer().frame(height: 24)
+                        Spacer().frame(height: 5) // 円柱風リストの上側のスペース
 
                         Text("Select Song")
                             .font(.title)
@@ -148,11 +172,14 @@ struct SongSelectionView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .zIndex(1)
 
+                    // (the rest of overlays like focused tile, controls, etc. remain as before)
+                
+            
                     if let fi = focusedIndex, songs.indices.contains(fi) {
                         let song = songs[fi]
                         VStack(spacing: 16) {
                             tileView(for: song)
-                                .frame(width: tileSize.width*1.12, height: tileSize.height*1.12)
+                                .frame(width: tileSize(for:geo.size.width).width*1.12, height: tileSize(for:geo.size.width).height*1.12)
                                 .shadow(radius: 12)
                                 .offset(y: min(dragOffsetY, 200))
                                 .transition(.move(edge: .bottom).combined(with: .scale))
