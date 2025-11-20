@@ -8,6 +8,7 @@
     "bpm": 280.0,
     "audioFilename": "Qual.mp3",
     "thumbnailFilename":"Qual_j.png",
+    "backgroundFilename":"Qual.png",
     "notes": [
         {
             "id": "12-0001",

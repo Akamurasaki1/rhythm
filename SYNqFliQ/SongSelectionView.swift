@@ -116,10 +116,11 @@ struct SongSelectionView: View {
                     Group {
                         if UIImage(named: "selection_bg") != nil {
                             Image("selection_bg")
-                                .resizable()
+                                .resizable(capInsets: EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)) // 全体に表示？
                                 .scaledToFill()
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .clipped()
+                                .frame(maxWidth:geo.size.width,maxHeight: .infinity) // 横幅に合わせることで、縦長画面でも変にならない
+                                .ignoresSafeArea()
+
                         } else {
                             Color.black
                         }
@@ -131,13 +132,12 @@ struct SongSelectionView: View {
                         .ignoresSafeArea()
 
                     VStack {
-                        Spacer().frame(height: 5) // 円柱風リストの上側のスペース
-
+                        Spacer()
                         Text("Select Song")
                             .font(.title)
                             .foregroundColor(.white)
                             .padding(.bottom, 8)
-
+                        Spacer().frame(alignment:.top) // 円柱風リストの上側のスペース
                         ZStack {
                             carouselView(size: geo.size)
                                 .frame(height: 220)
@@ -178,15 +178,18 @@ struct SongSelectionView: View {
                     if let fi = focusedIndex, songs.indices.contains(fi) {
                         let song = songs[fi]
                         VStack(spacing: 16) {
+                            let verticalShift: CGFloat = -min(geo.size.height * 0.06, 48) // move up by 6% of height, max 48pt
                             tileView(for: song)
                                 .frame(width: tileSize(for:geo.size.width).width*1.12, height: tileSize(for:geo.size.width).height*1.12)
                                 .shadow(radius: 12)
-                                .offset(y: min(dragOffsetY, 200))
+                                .offset(y: min(dragOffsetY, 200)+verticalShift)
                                 .transition(.move(edge: .bottom).combined(with: .scale))
                                 .zIndex(10)
 // Base → Flow → Core → Limit → Infinity → Void（隠し1） → Null（隠し2）
                             if showDifficulty {
+                                
                                 HStack(spacing: 18) {
+                                    let verticalShift: CGFloat = -min(geo.size.height * 0.06, 48) // move up by 6% of height, max 48pt
                                     difficultyButton("Base") { choose(song: song, difficulty: "Base") }
                                     difficultyButton("Flow") { choose(song: song, difficulty: "Flow") }
                                     difficultyButton("Core") { choose(song: song, difficulty: "Core") }
@@ -194,6 +197,7 @@ struct SongSelectionView: View {
                                     difficultyButton("Infinity"){choose(song:song, difficulty:"Infinity")}
                                 }
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
+                                .offset(y: min(dragOffsetY, 200)+verticalShift)
                                 .zIndex(9)
                             } else {
                                 Text("Swipe down to go back")
@@ -251,6 +255,7 @@ struct SongSelectionView: View {
         // MARK: - Carousel
         @ViewBuilder
         private func carouselView(size: CGSize) -> some View {
+            Spacer().frame(alignment:.top)
             if songs.isEmpty {
                 VStack {
                     Spacer()
@@ -334,10 +339,12 @@ struct SongSelectionView: View {
                         .resizable()
                         .scaledToFill()
                         .clipped()
+                        .frame(alignment:.center)
                 } else {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .topLeading, endPoint: .bottomTrailing))
                 }
+                
 
                 VStack {
                     Spacer()
@@ -355,6 +362,7 @@ struct SongSelectionView: View {
             .cornerRadius(12)
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.06), lineWidth: 1))
         }
+        
 
         // MARK: - difficulty button
         @ViewBuilder

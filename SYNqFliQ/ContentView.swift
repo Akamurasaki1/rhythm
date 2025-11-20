@@ -106,7 +106,7 @@ struct ContentView: View {
     @State private var gameLoopTimer: DispatchSourceTimer? = nil
     private let gameLoopInterval: Double = 1.0 / 60.0
     @State private var initialScrollPerformed: Bool = false
-
+    @State private var playheadTime: Double = 0.0
     // scheduling references for pause/resume
     @State private var scheduledSpawnTimes: [UUID: TimeInterval] = [:]
     @State private var scheduledClearTimes: [UUID: TimeInterval] = [:]
@@ -202,6 +202,19 @@ struct ContentView: View {
     private let carouselItemWidth: CGFloat = 100
     private let carouselItemSpacing: CGFloat = 12
     private let repeatFactor = 1
+    private func indicatorProgress(forNote a: ActiveNote, now: Double) -> Double {
+        let hit = a.hitTime
+        let approach = max(0.001, a.approachDuration)
+        let start = hit - 2.0 * approach
+        let end = hit
+
+        if now <= start { return 0.0 }
+        if now >= end { return 1.0 }
+
+        let raw = (now - start) / (end - start) // 0..1
+        let eased = pow(raw, 0.7)
+        return min(max(eased, 0.0), 1.0)
+    }
     // 1) resetAll — 既存の reset/stop 相当の安全な実装（必要なら内容をあなたの以前の実装に合わせて拡張）
     private func resetAll() {
         stopPlayback()
@@ -459,6 +472,7 @@ struct ContentView: View {
                 // Active notes rendering
                 // Active notes rendering (差し替え用)
                 ForEach(activeNotes) { a in
+                    flickIndicatorView(for: a, now:playheadTime)
                     // helper: safe positions with fallback
                     let pos = (a.position == .zero) ? a.targetPosition : a.position
                     let pos2 = (a.position2 == nil || a.position2 == .zero) ? a.targetPosition : a.position2!
@@ -760,7 +774,126 @@ struct ContentView: View {
             }
         }
     }
+    @ViewBuilder
 
+    // Returns AnyView to keep the concrete return type stable across branches.
+    // Call like: flickIndicatorView(for: a, now: playheadTime)
+    private func flickIndicatorView(for a: ActiveNote, now: Double, useBlur: Bool = false) -> AnyView {
+        // Don't draw for hold notes
+        if a.isHold { return AnyView(EmptyView()) }
+
+            // timing anchors
+            let hit = a.hitTime
+            let approach = max(0.001, a.approachDuration)
+            let start = hit - 2.0 * approach    // indicator start (user requested)
+            let appear = a.spawnTime            // when the visible note appears
+
+            // nothing to draw before start
+            if now < start { return AnyView(EmptyView()) }
+
+            // opacity phases:
+            // - start <= now < appear: keep 0.1
+            // - appear <= now < hit: interpolate 0.3 -> 0.7
+            // - now >= hit: 1.0 until cleared (a.isClear -> hide)
+            let opacity: Double
+            if now < appear {
+                opacity = 0.1
+            } else if now >= hit {
+                opacity = a.isClear ? 0.0 : 1.0
+            } else {
+                let denom = max(0.0001, hit - appear)
+                let raw = (now - appear) / denom // 0..1
+                let eased = pow(raw, 0.9)
+                let startVal: Double = 0.3
+                let endVal: Double = 0.7
+                opacity = startVal + (endVal - startVal) * eased
+            }
+
+            // overall progress from start..hit (0..1) used for length/scale
+            let rawP = min(1.0, max(0.0, (now - start) / max(0.0001, hit - start)))
+            let p = pow(rawP, 0.7)
+
+            // geometry: rod-like shape
+            // prefer to compute a moving position along the rod path:
+            // - if startPosition is valid (non-zero) use lerp from startPosition -> targetPosition
+            // - otherwise, place indicator offset from target along angleDegrees
+            let tx = a.targetPosition
+            let sp = a.startPosition
+            var pos = tx
+            if sp != .zero {
+                pos = CGPoint(
+                    x: sp.x + (tx.x - sp.x) * CGFloat(p),
+                    y: sp.y + (tx.y - sp.y) * CGFloat(p)
+                )
+            } else {
+                // fallback: offset along the angle away from target (so it "moves in")
+                let angleRad = CGFloat(a.angleDegrees) * .pi / 180.0
+                let maxOffset: CGFloat = 120.0 // how far the indicator originates from
+                let offset = maxOffset * (1.0 - CGFloat(p)) // reduces to 0 at hit
+                pos = CGPoint(x: tx.x + cos(angleRad) * offset, y: tx.y + sin(angleRad) * offset)
+            }
+
+            // rod dimensions
+            let rodLengthDefault: CGFloat = 160.0   // should match your RodView's default length
+            let rodThicknessDefault: CGFloat = 10.0 // rod visual thickness
+            // length scales with progress so it shortens as it approaches target (or invert as preferred)
+            let lengthScale = 0.6 + 0.4 * CGFloat(p) // from 0.6 -> 1.0
+            let length = max(40.0, rodLengthDefault * lengthScale)
+            let thickness = max(6.0, rodThicknessDefault * (0.6 + 0.4 * CGFloat(p)))
+
+            // rotation
+            let rotation = Angle(degrees: a.angleDegrees)
+
+            // Build view
+            if useBlur {
+                // nicer visual with blur and gradient (heavier)
+                let grad = LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color.yellow.opacity(opacity * 0.95), location: 0.0),
+                        .init(color: Color.yellow.opacity(opacity * 0.5), location: 0.6),
+                        .init(color: Color.yellow.opacity(0.0), location: 1.0)
+                    ]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+
+                let v = RoundedRectangle(cornerRadius: thickness / 2)
+                    .fill(grad)
+                    .frame(width: length, height: thickness)
+                    .rotationEffect(rotation)
+                    .position(pos)
+                    .scaleEffect(1.0) // already encoded in length/thickness
+                    .blur(radius: 6.0 * (1.0 - CGFloat(p))) // small blur
+                    .shadow(color: Color.yellow.opacity(opacity * 0.5), radius: 6 * (1.0 - CGFloat(p)))
+                    .opacity(opacity)
+                    .allowsHitTesting(false)
+
+                return AnyView(v)
+            } else {
+                // lightweight variant: solid gradient-less rod with opacity + subtle glow
+                let grad = LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.yellow.opacity(opacity),
+                        Color.yellow.opacity(opacity * 0.35),
+                        Color.clear
+                    ]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+
+                let v = RoundedRectangle(cornerRadius: thickness / 2)
+                    .fill(grad)
+                    .frame(width: length, height: thickness)
+                    .rotationEffect(rotation)
+                    .position(pos)
+                    .opacity(opacity)
+                    .allowsHitTesting(false)
+                    .compositingGroup()
+                    .shadow(color: Color.yellow.opacity(0.25 * opacity), radius: 2.0)
+
+                return AnyView(v)
+            }
+        }
     // MARK: - Audio/engine helpers
 
     private func prepareAudioEngineIfNeeded(url: URL) {
@@ -921,7 +1054,9 @@ struct ContentView: View {
     private func gameLoopTick() {
         let nowDev: TimeInterval = audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970
         var idsToRemove: [UUID] = []
-
+        DispatchQueue.main.async {
+            self.playheadTime = nowDev
+        }
         for i in (0..<activeNotes.count).reversed() {
             var note = activeNotes[i]
             let approachStart = note.approachStartDeviceTime ?? note.approachStartWallTime ?? (nowDev - note.approachDuration)

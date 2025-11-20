@@ -13,6 +13,7 @@ struct TitleView: View {
     // Optional callbacks
     var onOpenSettings: (() -> Void)? = nil
     var onShowCredits: (() -> Void)? = nil
+    var onShowTutorial: (() -> Void)? = nil
 
     // Local visual state
     @State private var showSubtitle = false
@@ -22,10 +23,17 @@ struct TitleView: View {
         ZStack {
             // 背景（既存の背景画像 state に差し替えたい場合はここを変更）
             Color.black.ignoresSafeArea()
-
             VStack(spacing: 24) {
                 Spacer().frame(height: 36)
-
+                
+                ZStack(alignment:.topLeading){
+                    Button(action:{
+                        onShowTutorial?()
+                    }){
+                        Text("Tutorial")
+                    }
+                }.background(Color.red)
+                
                 // ロゴ
                 VStack(spacing: 8) {
                     Text("SYNqFliQ")
@@ -70,6 +78,7 @@ struct TitleView: View {
                 }
 
                 // 小さめのボタン群
+                
                 HStack(spacing: 12) {
                     Button(action: {
                         onOpenSettings?()

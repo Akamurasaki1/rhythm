@@ -2,12 +2,12 @@ import SwiftUI
 
 @main
 struct SYNqFliQApp: App {
-    enum AppState { case title, songSelect, playing }
+    enum AppState { case title, songSelect, playing, tutorial }
 
     @StateObject private var appModel = AppModel()
-        @StateObject private var settings = SettingsStore()
-        @State private var appState: AppState = .title
-        @State private var showingSettings: Bool = false
+    @StateObject private var settings = SettingsStore()
+    @State private var appState: AppState = .title
+    @State private var showingSettings: Bool = false
 
     var body: some Scene {
         WindowGroup {
@@ -16,6 +16,7 @@ struct SYNqFliQApp: App {
                 if appModel.showingSongSelection {
                     songSelectionView()
                         .environmentObject(appModel)
+                        .environmentObject(settings) // <-- ensure SettingsStore is available here too
                 } else {
                     switch appState {
                     case .title:
@@ -31,7 +32,7 @@ struct SYNqFliQApp: App {
                         }, onShowCredits: {})
                         .environmentObject(appModel)
                         .environmentObject(settings)
-                        
+
 
                     case .songSelect:
                         songSelectionView()
@@ -42,9 +43,15 @@ struct SYNqFliQApp: App {
                         ContentView()
                             .environmentObject(appModel)
                             .environmentObject(settings)
+                    case .tutorial:
+                        TutorialView()
+                            .environmentObject(appModel)
+                            .environmentObject(settings)
+
                     }
                 }
-            }// settings sheet presentation
+            }
+            // settings sheet presentation
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
                     .environmentObject(settings)

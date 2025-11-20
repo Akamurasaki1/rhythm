@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "無題569_20251116012834.PNG",
+      "filename" : "regular_icon 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "無題569_20251116012834 1.PNG",
+      "filename" : "regular_icon.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "無題569_20251116012628.PNG",
+      "filename" : "tint_icon.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
