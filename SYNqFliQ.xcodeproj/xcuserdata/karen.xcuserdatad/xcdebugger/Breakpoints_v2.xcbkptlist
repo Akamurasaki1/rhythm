@@ -30,8 +30,8 @@
             filePath = "SYNqFliQ/ContentView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "283"
-            endingLineNumber = "283"
+            startingLineNumber = "244"
+            endingLineNumber = "244"
             landmarkName = "handlePotentialLongPressStart(at:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -50,6 +50,52 @@
             endingLineNumber = "15"
             landmarkName = "ResultView"
             landmarkType = "14">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "80E73ADE-8D4B-4AF1-86DC-E33B11B431DB"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "SYNqFliQ/ContentView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "306"
+            endingLineNumber = "306"
+            landmarkName = "handleFlickFromOverlay(noteId:start:end:duration:canvasSize:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "80E73ADE-8D4B-4AF1-86DC-E33B11B431DB - d3d86752ee49c409"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "SYNqFliQ.ContentView.handleFlickFromOverlay(noteId: Foundation.UUID, start: __C.CGPoint, end: __C.CGPoint, duration: Swift.Double, canvasSize: __C.CGSize) -&gt; ()"
+                  moduleName = "SYNqFliQ.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/karen/rhythm/SYNqFliQ/ContentView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "306"
+                  endingLineNumber = "306">
+               </Location>
+               <Location
+                  uuid = "80E73ADE-8D4B-4AF1-86DC-E33B11B431DB - d3d86752ee49c409"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "SYNqFliQ.ContentView.handleFlickFromOverlay(noteId: Foundation.UUID, start: __C.CGPoint, end: __C.CGPoint, duration: Swift.Double, canvasSize: __C.CGSize) -&gt; ()"
+                  moduleName = "SYNqFliQ.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/karen/rhythm/SYNqFliQ/ContentView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "306"
+                  endingLineNumber = "306">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

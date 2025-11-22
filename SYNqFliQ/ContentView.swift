@@ -32,46 +32,7 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @EnvironmentObject private var appModel: AppModel
 
-    // MARK: ActiveNote model used for runtime (spawned) notes
-    private struct ActiveNote: Identifiable {
-        let id: UUID
-        let sourceID: String?
-        let angleDegrees: Double
-        var position: CGPoint
-        let targetPosition: CGPoint
-        let hitTime: Double
-        let spawnTime: Double
-        var isClear: Bool
 
-        // types
-        var isTap: Bool = false
-        var isHold: Bool = false
-        var position2: CGPoint? = nil
-
-        // hold fields
-        var holdEndTime: Double? = nil
-        var holdStarted: Bool = false
-        var holdFillScale: Double = 0.0
-        var holdTrim: Double = 1.0
-        var holdStartDeviceTime: TimeInterval? = nil
-        var holdStartWallTime: TimeInterval? = nil
-        var holdTotalSeconds: Double = 0.0
-        var holdRemainingSeconds: Double = 0.0
-        var holdPressedByUser: Bool = false
-        var holdWasReleased: Bool = false
-        var holdPressDeviceTime: TimeInterval? = nil
-        var holdLastTickDeviceTime: TimeInterval? = nil
-        var holdCompletedWhileStopped: Bool = false
-        var holdReachedEnd: Bool = false
-
-        // approach movement
-        var startPosition: CGPoint = .zero
-        var approachStartDeviceTime: TimeInterval? = nil
-        var approachStartWallTime: TimeInterval? = nil
-        var approachEndDeviceTime: TimeInterval? = nil
-        var approachEndWallTime: TimeInterval? = nil
-        var approachDuration: Double = 0.0
-    }
 
     // MARK: State
     @State private var showingEditor: Bool = false
@@ -281,15 +242,156 @@ struct ContentView: View {
         }
     }    // 2) long-press helper stubs (no-op safe defaults)
     private func handlePotentialLongPressStart(at location: CGPoint) {
-        // optional: set some flag or show UI; keep no-op if not used
-        // e.g. longPressStartedAt = Date() / longPressLocation = location
+        let t0 = Date()
+        print("[LP] handlePotentialLongPressStart ENTER at \(location)")
+
+        // 軽量な UI フラグだけ（メインスレッド）
+        DispatchQueue.main.async {
+            // 例: 長押しの視覚表示フラグ（ContentView 側で showLongPress を利用していれば）
+            // self.showLongPress = true
+        }
+
+        // ログだけで終了（重い処理はここに入れない）
+        let elapsed = Date().timeIntervalSince(t0)
+        print("[LP] handlePotentialLongPressStart RETURN elapsed=\(elapsed)s")
     }
+
     private func handlePotentialLongPressEnd(at location: CGPoint, duration: TimeInterval) {
-        // optional: process long-press end; leave no-op if unused
+        let t0 = Date()
+        print("[LP] handlePotentialLongPressEnd ENTER at \(location) dur=\(duration)")
+
+        DispatchQueue.main.async {
+            // self.showLongPress = false
+        }
+
+        let elapsed = Date().timeIntervalSince(t0)
+        print("[LP] handlePotentialLongPressEnd RETURN elapsed=\(elapsed)s")
+    }
+    
+    // 2) Add this helper inside ContentView (e.g., near other handlers) to bridge overlay -> existing handleFlick
+    private func handleFlickFromOverlay(noteId: UUID, start: CGPoint, end: CGPoint, duration: TimeInterval, canvasSize: CGSize) {
+        // compute a pseudo DragGesture.Value for the existing handleFlick function
+        // We only need predictedEndTranslation; approximate it as (end - start)
+        // Build a small struct to mimic the pieces used in handleFlick
+        struct SimpleDrag {
+            var startLocation: CGPoint
+            var location: CGPoint
+            var predictedEndTranslation: CGSize
+        }
+        let predictedTranslation = CGSize(width: end.x - start.x, height: end.y - start.y)
+        let simple = SimpleDrag(startLocation: start, location: end, predictedEndTranslation: predictedTranslation)
+        // Find the active note index and call handleFlick(for:dragValue:in:)
+        if let idx = activeNotes.firstIndex(where: { $0.id == noteId }) {
+            // call existing handleFlick using the note id and synthesized data
+            // Note: we can't pass SimpleDrag directly; create a small adapter via overloading handleFlick or inline logic:
+            // We'll inline minimal flick behavior to reuse judgement and animation logic (same as handleFlick)
+            if flickedNoteIDs.contains(noteId) { return }
+            let flickVec = CGPoint(x: predictedTranslation.width, y: predictedTranslation.height)
+            let flickSpeed = hypot(flickVec.x, flickVec.y) / CGFloat(max(1e-6, duration))
+            guard flickSpeed > speedThreshold else { return }
+            let note = activeNotes[idx]
+            let theta = CGFloat(note.angleDegrees) * .pi / 180.0
+            let rodDir = CGPoint(x: cos(theta), y: sin(theta))
+            let n1 = CGPoint(x: -rodDir.y, y: rodDir.x); let n2 = CGPoint(x: rodDir.y, y: -rodDir.x)
+            let dot1 = n1.x * flickVec.x + n1.y * flickVec.y
+            let dot2 = n2.x * flickVec.x + n2.y * flickVec.y
+            let chosenNormal = (dot1 >= dot2) ? n1 : n2
+            let distance = max(canvasSize.width, canvasSize.height) * 1.5
+            let target = CGPoint(x: note.position.x + chosenNormal.x * distance, y: note.position.y + chosenNormal.y * distance)
+            if let work = autoDeleteWorkItems[noteId] { work.cancel(); autoDeleteWorkItems[noteId] = nil }
+            flickedNoteIDs.insert(noteId)
+            var elapsed: TimeInterval = 0.0
+            if let player = audioPlayer, let startDev = audioStartDeviceTime { elapsed = player.deviceCurrentTime - startDev } else if let sd = startDate { elapsed = Date().timeIntervalSince(sd) }
+            let dt = elapsed - note.hitTime
+            var judgementText = "OK"; var judgementColor: Color = .white
+            if abs(dt) <= perfectWindow { judgementText = "PERFECT"; judgementColor = .green; score += 3 }
+            else if (dt >= -goodWindowBefore && dt < -perfectWindow) || (dt > perfectWindow && dt <= goodWindowAfter) { judgementText = "GOOD"; judgementColor = .blue; score += 2 }
+            else { judgementText = "OK"; judgementColor = .white; score += 1 }
+            combo += 1; if combo > maxCombo { maxCombo = combo }
+            switch judgementText { case "PERFECT": perfectCount += 1; case "GOOD": goodCount += 1; case "OK": okCount += 1; default: break }
+            showJudgement(text: judgementText, color: judgementColor)
+            let flyDuration = 0.6
+            withAnimation(.easeOut(duration: flyDuration)) {
+                if let idx2 = activeNotes.firstIndex(where: { $0.id == noteId }) {
+                    activeNotes[idx2].position = target
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + flyDuration + 0.05) {
+                withAnimation(.easeIn(duration: 0.12)) { self.activeNotes.removeAll { $0.id == noteId } }
+                self.flickedNoteIDs.remove(noteId)
+            }
+        }
     }
     // MARK: - Body
-    var body: some View {
-        
+    // 追加: ContentView struct の内部（body の外）に置いてください
+    @ViewBuilder
+    private func activeNotesStack(geo: GeometryProxy) -> some View {
+        ForEach(activeNotes, id: \.id) { a in
+            // reduce complexity: wrap indicator as AnyView
+            let indicator: AnyView = AnyView(flickIndicatorView(for: a, now: playheadTime))
+            let pos: CGPoint = (a.position == .zero) ? a.targetPosition : a.position
+            let pos2: CGPoint = (a.position2 == nil || a.position2 == .zero) ? a.targetPosition : (a.position2 ?? a.targetPosition)
+
+            // render indicator
+            indicator
+
+            if a.isTap {
+                TriangleUp()
+                    .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .top, endPoint: .bottom))
+                    .frame(width: 44, height: 22)
+                    .position(pos)
+                    .zIndex(3)
+
+                TriangleDown()
+                    .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .bottom, endPoint: .top))
+                    .frame(width: 44, height: 22)
+                    .position(pos2)
+                    .zIndex(3)
+                    .opacity(a.isClear ? 1.0 : 0.95)
+            } else if a.isHold {
+                HoldView(size: 64, fillScale: a.holdFillScale, trimProgress: a.holdTrim,
+                         ringColor: .white.opacity(0.9),
+                         fillColor: a.holdPressedByUser ? Color.green.opacity(0.95) : Color.white.opacity(0.95))
+                    .position(a.targetPosition)
+                    .zIndex(4)
+            } else {
+                RodView(angleDegrees: a.angleDegrees)
+                    .frame(width: 160, height: 10)
+                    .opacity(a.isClear ? 1.0 : 0.35)
+                    .position(pos)
+                    .zIndex(a.isClear ? 2 : 1)
+                    .gesture(
+                        DragGesture(minimumDistance: 8)
+                            .onEnded { value in
+                                handleFlick(for: a.id, dragValue: value, in: geo.size)
+                            }
+                    )
+            }
+        }
+    }
+    /*
+    @ViewBuilder
+    private func activeNotesStack(geo: GeometryProxy) -> some View {
+        // Minimal rendering to test compiler load.
+        ForEach(activeNotes, id: \.id) { a in
+            if a.isTap {
+                // very small view
+                TriangleUp()
+                    .frame(width: 44, height: 22)
+                    .position(a.targetPosition)
+            } else if a.isHold {
+                HoldView(size: 64, fillScale: a.holdFillScale, trimProgress: a.holdTrim, ringColor: .white, fillColor: .white)
+                    .position(a.targetPosition)
+            } else {
+                RodView(angleDegrees: a.angleDegrees)
+                    .frame(width: 160, height: 10)
+                    .position(a.targetPosition)
+            }
+        }
+    }*/
+    /*var body: some View {
+        // ContentView 内に追加
+
         GeometryReader { geo in
             ZStack {
                 // debug: show game coordinate bounds
@@ -315,39 +417,83 @@ struct ContentView: View {
                 }
 
                 // Interaction overlay: handles touches for hold notes
+                // replace the existing TouchOverlay(...) block with this
                 TouchOverlay(
-                    onBegan: { id, loc in
+                    onTap: { id, loc in
                         guard isPlaying && !isStopped else { return }
+                        // Try to hit a tap-type active note first; fallback to generic tap handling
+                        if let nearest = findNearestNoteId(to: loc),
+                           let idx = activeNotes.firstIndex(where: { $0.id == nearest && $0.isTap }) {
+                            // If nearest is a tap note, use existing tap handler (in your code the second param is unused)
+                            handleTap(at: loc, in: loc)
+                        } else {
+                            // generic tap handling (no specific note assigned)
+                            handleTap(at: loc, in: loc)
+                        }
+                    },
+                    onMove: { id, loc in
+                        // keep finger location for hold logic and visuals
+                        self.fingerLocation = loc
+                    },
+                    onHoldStart: { id, loc in
+                        guard isPlaying && !isStopped else { return }
+                        // assign this touch to the nearest hold note (if any) so we can match on end
                         if let noteId = findNearestNoteId(to: loc) {
                             touchToNote[id] = noteId
-                            if let idx = activeNotes.firstIndex(where: { $0.id == noteId }), activeNotes[idx].isHold {
+                            if let idx = activeNotes.firstIndex(where: { $0.id == noteId && $0.isHold }) {
                                 self.fingerLocation = loc
                                 self.isFingerDown = true
                                 handleHoldTouchBegan(at: loc)
+                                return
                             }
                         }
-                    },
-                    onMoved: { id, loc in
+                        // If no nearby hold note, still treat as hold begin for generic logic
                         self.fingerLocation = loc
+                        self.isFingerDown = true
+                        handleHoldTouchBegan(at: loc)
                     },
-                    onEnded: { id, loc in
+                    onHoldEnd: { id, loc, duration in
                         guard isPlaying && !isStopped else { return }
+                        // if touch was assigned to a note, honor that; otherwise fall back to nearest
                         if let assigned = touchToNote[id] {
-                            if let idx = activeNotes.firstIndex(where: { $0.id == assigned }), activeNotes[idx].isHold {
+                            if let idx = activeNotes.firstIndex(where: { $0.id == assigned && $0.isHold }) {
                                 handleHoldTouchEnded(at: loc)
                             } else {
-                                // could handle tap end here
+                                // assigned note expired or no longer hold -> just end generic hold
+                                handleHoldTouchEnded(at: loc)
                             }
                             touchToNote[id] = nil
                         } else {
+                            // fallback: end any nearby hold
                             handleHoldTouchEnded(at: loc)
                         }
+                        // cleanup finger state
                         self.isFingerDown = false
                         self.fingerLocation = nil
+                    },
+                    onFlick: { id, startLoc, endLoc, velocity in
+                        guard isPlaying && !isStopped else { return }
+                        // velocity is px/sec from overlay; tune threshold as needed (you have speedThreshold)
+                        let overlayThreshold = max(CGFloat(self.speedThreshold), CGFloat(400)) // prefer existing speedThreshold if set
+                        if velocity < overlayThreshold { return }
+
+                        // find closest active note to the flick start point
+                        var closestId: UUID? = nil
+                        var closestDist = CGFloat.greatestFiniteMagnitude
+                        for n in activeNotes {
+                            let d = hypot(n.position.x - startLoc.x, n.position.y - startLoc.y)
+                            if d < closestDist { closestDist = d; closestId = n.id }
+                        }
+                        guard let noteId = closestId, closestDist <= hitRadius else { return }
+
+                        // Bridge to existing flick handling: call the same judgement+animation logic.
+                        // We'll call a small helper that mirrors handleFlick behavior but accepts start/end/velocity.
+                        handleFlickFromOverlay(noteId: noteId, start: startLoc, end: endLoc, velocity: velocity, canvasSize: geo.size)
                     }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .allowsHitTesting(isPlaying && !isStopped)
+                .ignoresSafeArea()
                 // Place this inside ContentView's ZStack near the top (replace existing "選曲に戻る" button)
                 // (excerpt) Replace the existing "選曲に戻る" button block with this code.
                 // Put this inside ContentView's ZStack near the top (replacing previous button).
@@ -471,43 +617,11 @@ struct ContentView: View {
 
                 // Active notes rendering
                 // Active notes rendering (差し替え用)
-                ForEach(activeNotes) { a in
-                    flickIndicatorView(for: a, now:playheadTime)
-                    // helper: safe positions with fallback
-                    let pos = (a.position == .zero) ? a.targetPosition : a.position
-                    let pos2 = (a.position2 == nil || a.position2 == .zero) ? a.targetPosition : a.position2!
+                // 置き換え前:
+                // ForEach(activeNotes) { a in ... }
 
-                    if a.isTap {
-                        TriangleUp()
-                            .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .top, endPoint: .bottom))
-                            .frame(width: 44, height: 22)
-                            .position(pos)
-                            .zIndex(3)
-
-                        TriangleDown()
-                            .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .bottom, endPoint: .top))
-                            .frame(width: 44, height: 22)
-                            .position(pos2)
-                            .zIndex(3)
-                            .opacity(a.isClear ? 1.0 : 0.95)
-                    } else if a.isHold {
-                        HoldView(size: 64, fillScale: a.holdFillScale, trimProgress: a.holdTrim, ringColor: .white.opacity(0.9), fillColor: a.holdPressedByUser ? Color.green.opacity(0.95) : Color.white.opacity(0.95))
-                            .position(a.targetPosition)
-                            .zIndex(4)
-                    } else {
-                        RodView(angleDegrees: a.angleDegrees)
-                            .frame(width: 160, height: 10)
-                            .opacity(a.isClear ? 1.0 : 0.35)
-                            .position(pos)
-                            .zIndex(a.isClear ? 2 : 1)
-                            .gesture(
-                                DragGesture(minimumDistance: 8)
-                                    .onEnded { value in
-                                        handleFlick(for: a.id, dragValue: value, in: geo.size)
-                                    }
-                            )
-                    }
-                }
+                // 置き換え後:
+                activeNotesStack(geo: geo)
                 // Bottom controls
                 VStack {
                     Spacer()
@@ -730,7 +844,433 @@ struct ContentView: View {
             }
         } // GeometryReader
     } // body
+    */
     
+    // temporarily replace var body: some View { ... } with this minimal body
+    var body: some View {
+        
+        GeometryReader { geo in
+            ZStack {
+                TouchOverlay(
+                    onTap: { id, loc in
+                        guard isPlaying && !isStopped else { return }
+                        handleTap(at: loc, in: loc)
+                    },
+                    onMove: { id, loc in
+                        self.fingerLocation = loc
+                    },
+                    onHoldStart: { id, loc in
+                        guard isPlaying && !isStopped else { return }
+                        // optional: assign touch->note mapping
+                        if let nid = findNearestNoteId(to: loc) { touchToNote[id] = nid }
+                        self.fingerLocation = loc
+                        self.isFingerDown = true
+                        handleHoldTouchBegan(at: loc)
+                    },
+                    onHoldEnd: { id, loc, duration in
+                        guard isPlaying && !isStopped else { return }
+                        if let assigned = touchToNote[id] {
+                            // use assigned mapping if available
+                            handleHoldTouchEnded(at: loc)
+                            touchToNote[id] = nil
+                        } else {
+                            handleHoldTouchEnded(at: loc)
+                        }
+                        self.isFingerDown = false
+                        self.fingerLocation = nil
+                    },
+                    onFlick: { id, start, end, velocity in
+                        guard isPlaying && !isStopped else { return }
+                        // map overlay flick to existing handler
+                        // do a nearest-note lookup similar to earlier code
+                        var closestId: UUID? = nil; var closestDist = CGFloat.greatestFiniteMagnitude
+                        for n in activeNotes {
+                            let d = hypot(n.position.x - start.x, n.position.y - start.y)
+                            if d < closestDist { closestDist = d; closestId = n.id }
+                        }
+                        if let noteId = closestId, closestDist <= hitRadius {
+                            // call the helper you have: handleFlickFromOverlay or inline behavior
+                            handleFlickFromOverlay(noteId: noteId, start: start, end: end, duration: TimeInterval(1.0 / max(1.0, Double(velocity))), canvasSize: geo.size)
+                        }
+                    }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .allowsHitTesting(isPlaying && !isStopped)
+                .ignoresSafeArea()
+                // debug: show game coordinate bounds
+                Color.clear
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .border(Color.red, width: 1) // ← これでゲーム座標の領域が赤枠で出ます
+                    .allowsHitTesting(false)
+                // Background
+                if let ui = backgroundImage {
+                    Image(uiImage: ui)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                        .ignoresSafeArea()
+                } else if backgroundIsVideo, let player = backgroundPlayer {
+                    VideoPlayer(player: player)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                        .ignoresSafeArea()
+                } else {
+                    Color.black.ignoresSafeArea()
+                }
+
+                // Interaction overlay: handles touches for hold notes
+                // replace the existing TouchOverlay(...) block with this
+                // Place this inside ContentView's ZStack near the top (replace existing "選曲に戻る" button)
+                // (excerpt) Replace the existing "選曲に戻る" button block with this code.
+                // Put this inside ContentView's ZStack near the top (replacing previous button).
+                VStack {
+                    HStack {
+                        Button(action: {
+                            print("DBG: Back-to-selection button tapped. before selected = \(String(describing: appModel.selectedSheetFilename)), showingSongSelection = \(appModel.showingSongSelection)")
+
+                            // Close local modals so they don't block navigation
+                            isShowingRecordDetail = false
+                            isShowingResults = false
+                            isShowingShare = false
+                            showingEditor = false
+                            isShowingImportPicker = false
+
+                            // Do NOT clear appModel.selectedSheetFilename here (don't overwrite user's selection).
+                            // Just request the song-selection UI.
+                            appModel.openSongSelection()
+
+                            print("DBG: Back-to-selection action dispatched. after selected = \(String(describing: appModel.selectedSheetFilename)), showingSongSelection = \(appModel.showingSongSelection)")
+                        })  {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.uturn.left")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("選曲に戻る")
+                                    .font(.subheadline)
+                            }
+                            .padding(8)
+                            .background(Color.black.opacity(0.45))
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                        }
+                        Spacer()
+                    }
+                    .padding(.top, 12)
+                    .padding(.horizontal, 12)
+                    Spacer()
+                }
+                .allowsHitTesting(true)
+                .zIndex(1000)
+                // Main UI VStack
+                VStack {
+                    // Header: score / combo
+                    HStack {
+                        
+                        VStack(alignment: .leading) {
+                            Text("Score: \(score)").foregroundColor(.white).font(.headline)
+                            Text("Combo: \(combo)").foregroundColor(.yellow).font(.subheadline)
+                        }
+                        Spacer()
+                        if shouldShowJudgement() {
+                            Text(lastJudgement)
+                                .font(.title2)
+                                .bold()
+                                .foregroundColor(lastJudgementColor)
+                                .padding(8)
+                                .background(Color.black.opacity(0.6))
+                                .cornerRadius(8)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+
+                    // History-only carousel (replaces previous selection carousel)
+                    HStack(alignment: .center) {
+                        Text("Songs:")
+                            .foregroundColor(.white)
+                            .padding(.leading, 10)
+                        if !isPlaying {
+                            historyCarouselView(width: geo.size.width)
+                                .frame(height: 160)
+                                .padding(.trailing, 8)
+                        } else {
+                            Spacer().frame(height: 8)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 6)
+
+                    // Tuning UI (hidden while playing)
+                    if !isPlaying {
+                        VStack(spacing: 8) {
+                            HStack {
+                                Text("Approach dist (fraction): \(String(format: "%.2f", settings.approachDistanceFraction))")
+                                    .foregroundColor(.white)
+                                Spacer()
+                            }
+                            Slider(value: approachDistanceFractionBinding, in: 0.05...1.5)
+                            HStack {
+                                Text("Approach speed (pts/s): \(Int(settings.approachSpeed))")
+                                    .foregroundColor(.white)
+                                Spacer()
+                                let exampleDistance = settings.approachDistanceFraction * min(geo.size.width, geo.size.height)
+                                let derivedDuration = exampleDistance / max(settings.approachSpeed, 1.0)
+                                Text("例 dur: \(String(format: "%.2f", derivedDuration))s")
+                                    .foregroundColor(.gray)
+                            }
+                            Slider(value: $settings.approachSpeed, in: 100...3000)
+                            VStack {
+                                HStack {
+                                    Text("Hold fill fraction: \(String(format: "%.2f", settings.holdFillDurationFraction))")
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                Slider(value: $settings.holdFillDurationFraction, in: 0.2...1.8)
+                                HStack {
+                                    Text("Hold finish trim threshold: \(String(format: "%.3f", settings.holdFinishTrimThreshold))")
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                Slider(value: $settings.holdFinishTrimThreshold, in: 0.001...0.08)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 6)
+                    }
+
+                    Spacer()
+                } // VStack
+
+                // Active notes rendering
+                // Active notes rendering (差し替え用)
+                // 置き換え前:
+                // ForEach(activeNotes) { a in ... }
+
+                // 置き換え後:
+                activeNotesStack(geo: geo)
+                // Bottom controls
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            if isPlaying && !isStopped {
+                                pausePlayback()
+                            } else if isPlaying && isStopped {
+                                resumePlayback()
+                                if let player = audioPlayer { player.play() }
+                            } else {
+                                // Start new play using appModel.selectedSheet (SongSelectionView manages selection)
+                                if let sel = appModel.selectedSheet {
+                                    sheetNotesToPlay = sel.notes
+                                    notesToPlay = sel.notes.asNotes()
+                                } else {
+                                    sheetNotesToPlay = []
+                                    notesToPlay = []
+                                }
+                                startPlayback(in: geo.size)
+                            }
+                        }) {
+                            Text(isPlaying && !isStopped ? "Stop" : (isPlaying && isStopped ? "Resume" : "Start"))
+                                .font(.headline)
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 16)
+                                .background((isPlaying && !isStopped) ? Color.red : Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+                        Spacer()
+                        Button(action: {
+                            // open editor (sheet)
+                            // show an editor sheet - placeholder hook
+                        }) {
+                            Text("Editor")
+                                .font(.subheadline)
+                                .padding(8)
+                                .background(Color.blue.opacity(0.85))
+                                .foregroundColor(.white)
+                                .cornerRadius(6)
+                        }
+                        Spacer()
+                        Text("Export").font(.subheadline).padding(8).background(Color.purple.opacity(0.85)).foregroundColor(.white).cornerRadius(6)
+                        Spacer()
+                        Button(action: { isShowingRecordDetail = true }) {
+                            Text("History")
+                                .font(.subheadline)
+                                .padding(8)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(6)
+                        }
+                        Spacer()
+                        Button(action: {
+                            isShowingImportPicker = true
+                        }) {
+                            Text("Import")
+                                .font(.subheadline)
+                                .padding(8)
+                                .background(Color.orange.opacity(0.9))
+                                .foregroundColor(.white)
+                                .cornerRadius(6)
+                        }
+                        Button(action: {
+                            resetAll()
+                        }) {
+                            Text("Reset")
+                                .font(.subheadline)
+                                .padding(8)
+                                .background(Color.gray.opacity(0.3))
+                                .cornerRadius(6)
+                        }
+                        Spacer()
+                    }
+                    .padding(.bottom, 12)
+                    .sheet(isPresented: $isShowingRecordDetail) {
+                        if let rec = selectedRecord {
+                            PlayRecordDetailView(record: rec, onPreview: { record in
+                                if let fn = record.sheetFilename,
+                                   let idx = bundledSheets.firstIndex(where: { $0.filename == fn }) {
+                                    // load and preview
+                                    previewAndPlaySheet(at: idx)
+                                    isShowingRecordDetail = false
+                                } else {
+                                    print("DBG: Preview: sheet not found for record \(record.sheetFilename ?? "nil")")
+                                }
+                            })
+                        } else {
+                            // show list when opened without selecting from thumbnail
+                            HistoryListView(records: playHistory, onSelect: { rec in
+                                selectedRecord = rec
+                                isShowingRecordDetail = true
+                            })
+                        }
+                    }
+                    .sheet(isPresented: $isShowingResults) {
+                        ResultsView(score: score, maxCombo: maxCombo, perfect: perfectCount, good: goodCount, ok: okCount, miss: missCount, cumulativeCombo: cumulativeCombo, playMaxHistory: playMaxHistory, consecutiveCombo: consecutiveCombo)
+                    }
+                    .sheet(isPresented: $isShowingShare) {
+                        if let url = shareURL {
+                            ShareSheet(activityItems: [url])
+                        } else {
+                            Text("No file to share.")
+                        }
+                    }
+
+                    if !isPlaying {
+                        HStack {
+                            Text("Selected: \(appModel.selectedSheet?.title ?? "—")")
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.bottom, 20)
+                    } else {
+                        Spacer().frame(height: 20)
+                    }
+                }
+            } // ZStack
+            .contentShape(Rectangle())
+            // Global drag gesture used for flicks / taps
+            .simultaneousGesture(
+                (isPlaying && !isStopped) ? DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        if touchStartTime == nil {
+                            touchStartTime = Date()
+                            touchStartLocation = value.startLocation
+                            touchIsLongPress = false
+                            currentGestureID = UUID()
+                            currentGestureHasFlicked = false
+                            let work = DispatchWorkItem {
+                                DispatchQueue.main.async {
+                                    touchIsLongPress = true
+                                    handlePotentialLongPressStart(at: value.startLocation)
+                                }
+                            }
+                            touchLongPressWorkItem?.cancel()
+                            touchLongPressWorkItem = work
+                            DispatchQueue.global().asyncAfter(deadline: .now() + longPressThreshold, execute: work)
+                            handleHoldTouchBegan(at: value.startLocation)
+                        } else {
+                            fingerLocation = value.location
+                        }
+                    }
+                    .onEnded { value in
+                        touchLongPressWorkItem?.cancel()
+                        touchLongPressWorkItem = nil
+                        let start = touchStartTime ?? Date()
+                        let duration = Date().timeIntervalSince(start)
+                        let dx = value.location.x - (touchStartLocation?.x ?? value.location.x)
+                        let dy = value.location.y - (touchStartLocation?.y ?? value.location.y)
+                        let dist = hypot(dx, dy)
+
+                        if touchIsLongPress {
+                            handlePotentialLongPressEnd(at: value.location, duration: duration)
+                        } else {
+                            if dist < 20.0 {
+                                handleTap(at: value.location, in: value.startLocation)
+                            } else {
+                                handleGlobalFlick(dragValue: value, in: geo.size)
+                            }
+                        }
+
+                        handleHoldTouchEnded(at: value.location)
+
+                        // reset gesture
+                        currentGestureID = nil
+                        currentGestureHasFlicked = false
+                        touchStartTime = nil
+                        touchStartLocation = nil
+                        touchIsLongPress = false
+                    } : nil
+            )
+            .gesture(
+                DragGesture(minimumDistance: 8)
+                    .onEnded { value in
+                        handleGlobalFlick(dragValue: value, in: geo.size)
+                    }
+            )
+            .fileImporter(isPresented: $isShowingImportPicker, allowedContentTypes: [UTType.json, UTType.audio], allowsMultipleSelection: false) { result in
+                switch result {
+                case .success(let urls):
+                    if let url = urls.first { handleImportedFile(url: url) }
+                case .failure(let err):
+                    importErrorMessage = "Import picker failed: \(err.localizedDescription)"
+                }
+            }
+            // ContentView.swift — inside ContentView { ... } (body's modifier chain)
+            .onAppear {
+                // Request AppModel to (re)load sheets (async). AppModel will publish bundledSheets when ready.
+                appModel.loadBundledSheets()
+                // Do not force-copy appModel.bundledSheets here — wait for the published change.
+                print("DBG: ContentView.onAppear requested loadBundledSheets")
+            }
+            .onChange(of: appModel.bundledSheets) { newList in
+                // Mirror the authoritative list from AppModel
+                bundledSheets = newList as! [(filename: String, sheet: Sheet)]
+                print("DBG: ContentView observed appModel.bundledSheets change -> \(bundledSheets.map { $0.filename })")
+            }
+            .onChange(of: appModel.selectedSheetFilename) { newSel in
+                print("DBG: ContentView observed selectedSheetFilename -> \(String(describing: newSel))")
+                // Sync your playback lists from the AppModel selection here
+                guard let fn = newSel else {
+                    // clear state if needed
+                    sheetNotesToPlay = []
+                    notesToPlay = []
+                    clearBackground()
+                    return
+                }
+                if let idx = bundledSheets.firstIndex(where: { $0.filename == fn }) {
+                    let sheet = bundledSheets[idx].sheet
+                    // set notes/background from sheet
+                    sheetNotesToPlay = sheet.notes
+                    // replace asNotes() with your project's converter if different
+                    notesToPlay = sheet.notes.asNotes()
+                    prepareBackgroundIfNeeded(named: sheet.backgroundFilename, forceReload: true)
+                } else {
+                    print("DBG: ContentView: selected filename not found in local bundledSheets: \(fn)")
+                }
+            }
+        } // GeometryReader
+    }
 
     // MARK: - History UI helpers
     private func loadPlayHistory() {
@@ -1051,14 +1591,20 @@ struct ContentView: View {
         if let t = gameLoopTimer { t.cancel(); gameLoopTimer = nil; print("DBG: gameLoop stopped") }
     }
 
+    // Replace existing gameLoopTick() with this batched implementation
     private func gameLoopTick() {
+        // compute current device time once
         let nowDev: TimeInterval = audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970
+
+        // Prepare local working copy to avoid many published updates
+        var newActiveNotes = activeNotes // copy snapshot
         var idsToRemove: [UUID] = []
-        DispatchQueue.main.async {
-            self.playheadTime = nowDev
-        }
-        for i in (0..<activeNotes.count).reversed() {
-            var note = activeNotes[i]
+
+        // Iterate over snapshot indices (we will mutate newActiveNotes)
+        for i in (0..<newActiveNotes.count).reversed() {
+            var note = newActiveNotes[i]
+
+            // Movement / approach update (unchanged logic but using local 'note')
             let approachStart = note.approachStartDeviceTime ?? note.approachStartWallTime ?? (nowDev - note.approachDuration)
             let approachEnd = note.approachEndDeviceTime ?? note.approachEndWallTime ?? (approachStart + note.approachDuration)
 
@@ -1078,8 +1624,10 @@ struct ContentView: View {
                 if note.isTap { note.position2 = note.position }
             }
 
+            // Hold handling: use central loop rather than per-note timers
             if note.isHold {
                 let fillDuration = max(0.0, note.approachDuration * settings.holdFillDurationFraction)
+                // compute fill end reference
                 let fillEndTime = (note.approachStartDeviceTime != nil) ? (note.approachStartDeviceTime! + fillDuration) : (note.approachStartWallTime ?? Date().timeIntervalSince1970 + fillDuration)
                 if nowDev < fillEndTime {
                     let fillT = (nowDev - (note.approachStartDeviceTime ?? note.approachStartWallTime ?? nowDev)) / max(0.00001, fillDuration)
@@ -1095,6 +1643,7 @@ struct ContentView: View {
                             note.holdStartWallTime = Date().timeIntervalSince1970
                             note.holdLastTickDeviceTime = note.holdStartWallTime
                         }
+                        // If finger is down near target at this moment, mark pressed
                         if self.isFingerDown, let finger = self.fingerLocation {
                             let d = hypot(note.targetPosition.x - finger.x, note.targetPosition.y - finger.y)
                             if d <= self.hitRadius && !note.holdPressedByUser && !note.holdWasReleased {
@@ -1113,12 +1662,11 @@ struct ContentView: View {
                     let total = max(0.0001, note.holdTotalSeconds)
                     note.holdTrim = min(1.0, max(0.0, note.holdRemainingSeconds / total))
                     if note.holdRemainingSeconds <= 0.0001 {
-                        self.perfectCount += 1; self.score += 3; self.combo += 1
-                        if self.combo > self.maxCombo { self.maxCombo = self.combo }
-                        self.showJudgement(text: "PERFECT", color: .green)
+                        // Complete - schedule removal
                         idsToRemove.append(note.id)
                     }
                 } else {
+                    // If hold expired without user pressing, check miss window
                     var holdEndDev: TimeInterval? = nil
                     if let hed = note.holdEndTime {
                         if let startDev = self.audioStartDeviceTime, self.audioPlayer != nil {
@@ -1136,28 +1684,38 @@ struct ContentView: View {
                     }
                     if let hed = holdEndDev {
                         if nowDev - hed > 0.5 && !note.holdPressedByUser {
-                            self.missCount += 1; self.combo = 0; self.consecutiveCombo = 0
-                            self.showJudgement(text: "MISS", color: .red); idsToRemove.append(note.id)
+                            // Mark miss and remove
+                            DispatchQueue.main.async {
+                                self.missCount += 1; self.combo = 0; self.consecutiveCombo = 0
+                                self.showJudgement(text: "MISS", color: .red)
+                            }
+                            idsToRemove.append(note.id)
                         }
                     }
                 }
             }
 
-            activeNotes[i] = note
-        }
+            // write back to newActiveNotes
+            newActiveNotes[i] = note
+        } // end loop
 
-        if !idsToRemove.isEmpty {
-            DispatchQueue.main.async {
+        // perform UI updates once on main
+        DispatchQueue.main.async {
+            self.playheadTime = nowDev
+            // remove notes
+            if !idsToRemove.isEmpty {
                 withAnimation(.easeIn(duration: 0.12)) {
                     for id in idsToRemove {
                         self.activeNotes.removeAll { $0.id == id }
-                        if let w = self.autoDeleteWorkItems[id] { w.cancel(); self.autoDeleteWorkItems[id] = nil }
-                        if let t = self.holdTimers[id] { t.cancel(); self.holdTimers[id] = nil }
                     }
                 }
+            } else {
+                // assign updated array
+                self.activeNotes = newActiveNotes
             }
         }
     }
+    
 
     // MARK: - Spawn / scheduling and playback
 
@@ -1977,7 +2535,7 @@ struct HoldView: View {
 // MARK: - TouchOverlay
 // Minimal multi-touch overlay that invokes closures with a synthetic touch id and location.
 // Replace with your existing TouchOverlay implementation if you have one.
-class TouchOverlayView: UIView {
+/*class TouchOverlayView: UIView {
     var onBegan: ((Int, CGPoint) -> Void)?
     var onMoved: ((Int, CGPoint) -> Void)?
     var onEnded: ((Int, CGPoint) -> Void)?
@@ -2017,7 +2575,7 @@ class TouchOverlayView: UIView {
             onEnded?(id, p)
         }
     }
-}
+}*/
 
 // MARK: - ShareSheet helper
 
@@ -2027,3 +2585,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView().environmentObject(AppModel())
     }
 }
+
