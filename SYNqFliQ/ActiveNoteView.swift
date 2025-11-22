@@ -25,13 +25,13 @@ struct ActiveNoteView: View {
             if note.isTap {
                 TriangleUp()
                     .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .top, endPoint: .bottom))
-                    .frame(width: 44, height: 22)
+                    .frame(width: 66, height: 33)
                     .position(pos)
                     .zIndex(3)
 
                 TriangleDown()
                     .fill(LinearGradient(gradient: Gradient(colors: [Color.white, Color.gray]), startPoint: .bottom, endPoint: .top))
-                    .frame(width: 44, height: 22)
+                    .frame(width: 66, height: 33)
                     .position(pos2)
                     .zIndex(3)
                     .opacity(note.isClear ? 1.0 : 0.95)
