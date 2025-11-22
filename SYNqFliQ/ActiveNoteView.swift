@@ -37,7 +37,7 @@ struct ActiveNoteView: View {
                     .opacity(note.isClear ? 1.0 : 0.95)
             } else if note.isHold {
                 HoldView(size: 64, fillScale: note.holdFillScale, trimProgress: note.holdTrim,
-                         ringColor: .white.opacity(0.9),
+                         ringColor: .black.opacity(0.9),
                          fillColor: note.holdPressedByUser ? Color.green.opacity(0.95) : Color.white.opacity(0.95))
                     .position(note.targetPosition)
                     .zIndex(4)

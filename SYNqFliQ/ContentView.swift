@@ -342,7 +342,6 @@ struct ContentView: View {
             )
         }
     }
-    
     // temporarily replace var body: some View { ... } with this minimal body
     var body: some View {
         
