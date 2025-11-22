@@ -9,19 +9,3495 @@
     "bpm": 140.0,
     "audioFilename": "MARENOL.mp3",
     "thumbnailFilename":"MARENOL_j.png",
-    "notes": [
+    "backgroundFilename":"MARENOL.png",
+    "notes":[
         {
-            "id": "12-0001",
-            "time": 0.4,
-            "angleDegrees": -10.0,
-            "normalizedPosition": { "x": 0.45, "y": 0.35 }
+          "id" : "12-0001",
+          "time" : 2.439727585,
+          "angleDegrees" : 0,
+          "noteType" : "hold",
+          "holdEndTime" : 2.979626228,
+          "normalizedPosition" : {
+            "x" : 0.21888726207906295,
+            "y" : 0.4287179487179487
+          }
         },
         {
-            "id": "12-0002",
-            "time": 0.7,
-            "angleDegrees": 20.0,
-            "normalizedPosition": { "x": 0.55, "y": 0.38 }
+          "id" : "12-0002",
+          "time" : 3.488319311,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.6866764275256223,
+            "y" : 0.43743589743589745
+          }
+        },
+        {
+          "id" : "12-0003",
+          "time" : 3.821890134,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.5307692307692308,
+            "x" : 0.31551976573938506
+          }
+        },
+        {
+          "id" : "12-0004",
+          "time" : 4.021980822,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.8535871156661786,
+            "y" : 0.31743589743589745
+          }
+        },
+        {
+          "id" : "12-0005",
+          "time" : 4.480567933,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.6486090775988287,
+            "y" : 0.3912820512820513
+          }
+        },
+        {
+          "id" : "12-0006",
+          "time" : 5.097662393,
+          "angleDegrees" : 50.355825042855194,
+          "noteType" : "flick",
+          "normalizedPosition" : {
+            "y" : 0.3523076923076923,
+            "x" : 0.5882137628111274
+          }
+        },
+        {
+          "id" : "12-0007",
+          "time" : 5.514334246,
+          "angleDegrees" : 291.9775952148923,
+          "noteType" : "flick",
+          "normalizedPosition" : {
+            "x" : 0.36273792093704244,
+            "y" : 0.47897435897435897
+          }
+        },
+        {
+          "id" : "12-0008",
+          "time" : 5.71454256,
+          "angleDegrees" : 276.39237368003705,
+          "noteType" : "flick",
+          "normalizedPosition" : {
+            "y" : 0.6753846153846154,
+            "x" : 0.5691800878477306
+          }
+        },
+        {
+          "id" : "12-0009",
+          "time" : 5.948129439,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.4150805270863836,
+            "y" : 0.6933333333333334
+          }
+        },
+        {
+          "id" : "12-0010",
+          "time" : 6.148126599,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.5364102564102564,
+            "x" : 0.7712298682284041
+          }
+        },
+        {
+          "id" : "12-0011",
+          "time" : 6.356624583,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.31954612005856514,
+            "y" : 0.6333333333333333
+          }
+        },
+        {
+          "id" : "12-0012",
+          "time" : 7.31541927,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.22181551976573938,
+            "y" : 0.5671794871794872
+          }
+        },
+        {
+          "id" : "12-0013",
+          "time" : 7.524018476,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.6758974358974359,
+            "x" : 0.7097364568081991
+          }
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.5205128205128206,
+            "x" : 0.21156661786237188
+          },
+          "noteType" : "tap",
+          "time" : 7.732481809,
+          "id" : "12-0014",
+          "angleDegrees" : 0
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.5158974358974359,
+            "x" : 0.6299414348462665
+          },
+          "noteType" : "tap",
+          "time" : 7.949303256,
+          "id" : "12-0015",
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0016",
+          "time" : 8.132632278,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.5030769230769231,
+            "x" : 0.2679355783308931
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0017",
+          "time" : 8.933472464,
+          "holdEndTime" : 9.10813664,
+          "noteType" : "hold",
+          "normalizedPosition" : {
+            "y" : 0.26974358974358975,
+            "x" : 0.5164714494875549
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0018",
+          "time" : 9.500004805,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.3096632503660322,
+            "y" : 0.28717948717948716
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0019",
+          "time" : 9.75017795,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.7210834553440703,
+            "y" : 0.3394871794871795
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0020",
+          "time" : 9.933853352,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.4835897435897436,
+            "x" : 0.44875549048316254
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0021",
+          "time" : 10.35890495,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.5234260614934114,
+            "y" : 0.49230769230769234
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0022",
+          "time" : 10.792500564,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.31743589743589745,
+            "x" : 0.21376281112737922
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0023",
+          "time" : 11.226081921,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.18974358974358974,
+            "x" : 0.6581259150805271
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0024",
+          "time" : 11.676237899,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.20571010248901903,
+            "y" : 0.7276923076923076
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0025",
+          "time" : 12.107520498,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.8931185944363104,
+            "y" : 0.6169230769230769
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0026",
+          "time" : 12.476724286,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.6051282051282051,
+            "x" : 0.46266471449487556
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "id" : "12-0027",
+          "time" : 12.910141289,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.33076923076923076,
+            "x" : 0.45717423133235724
+          },
+          "angleDegrees" : 0
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0028",
+          "noteType" : "tap",
+          "time" : 13.343892114,
+          "normalizedPosition" : {
+            "x" : 0.14165446559297218,
+            "y" : 0.42717948717948717
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0029",
+          "noteType" : "tap",
+          "time" : 13.773646385,
+          "normalizedPosition" : {
+            "x" : 0.44619326500732065,
+            "y" : 0.14051282051282052
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0030",
+          "noteType" : "tap",
+          "time" : 14.177626936,
+          "normalizedPosition" : {
+            "y" : 0.16307692307692306,
+            "x" : 0.28806734992679356
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0031",
+          "noteType" : "tap",
+          "time" : 14.611341258,
+          "normalizedPosition" : {
+            "y" : 0.4605128205128205,
+            "x" : 0.8920204978038068
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0032",
+          "noteType" : "tap",
+          "time" : 15.053307088,
+          "normalizedPosition" : {
+            "x" : 0.345900439238653,
+            "y" : 0.7841025641025641
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0033",
+          "noteType" : "tap",
+          "time" : 15.495156346,
+          "normalizedPosition" : {
+            "x" : 0.8294289897510981,
+            "y" : 0.7441025641025641
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0034",
+          "noteType" : "tap",
+          "time" : 15.907381985,
+          "normalizedPosition" : {
+            "x" : 0.36200585651537337,
+            "y" : 0.39384615384615385
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0035",
+          "noteType" : "tap",
+          "time" : 16.954364462,
+          "normalizedPosition" : {
+            "x" : 0.6782576866764275,
+            "y" : 0.5769230769230769
+          }
+        },
+        {
+          "angleDegrees" : 249.18635091328798,
+          "id" : "12-0036",
+          "noteType" : "flick",
+          "time" : 17.354440643,
+          "normalizedPosition" : {
+            "y" : 0.7446153846153846,
+            "x" : 0.671303074670571
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0037",
+          "noteType" : "tap",
+          "time" : 18.141746472,
+          "normalizedPosition" : {
+            "x" : 0.3210102489019034,
+            "y" : 0.6133333333333333
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0038",
+          "noteType" : "tap",
+          "time" : 18.33019782,
+          "normalizedPosition" : {
+            "x" : 0.6958272327964861,
+            "y" : 0.6005128205128205
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0039",
+          "noteType" : "tap",
+          "time" : 18.541001953,
+          "normalizedPosition" : {
+            "y" : 0.7041025641025641,
+            "x" : 0.33382137628111275
+          }
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.35846153846153844,
+            "x" : 0.5658857979502196
+          },
+          "angleDegrees" : 0,
+          "id" : "12-0040",
+          "noteType" : "hold",
+          "time" : 19.333487882,
+          "holdEndTime" : 19.622618443
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0041",
+          "noteType" : "tap",
+          "time" : 19.814394522,
+          "normalizedPosition" : {
+            "x" : 0.1438506588579795,
+            "y" : 0.5461538461538461
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0042",
+          "noteType" : "tap",
+          "time" : 20.031159067,
+          "normalizedPosition" : {
+            "x" : 0.6515373352855052,
+            "y" : 0.6497435897435897
+          }
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0043",
+          "noteType" : "tap",
+          "time" : 20.189570401,
+          "normalizedPosition" : {
+            "y" : 0.5769230769230769,
+            "x" : 0.22693997071742314
+          }
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.8594871794871795,
+            "x" : 0.7046120058565154
+          },
+          "angleDegrees" : 0,
+          "id" : "12-0044",
+          "noteType" : "hold",
+          "time" : 20.966768537,
+          "holdEndTime" : 21.0233385
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0045",
+          "noteType" : "tap",
+          "time" : 21.448748087,
+          "normalizedPosition" : {
+            "x" : 0.6185944363103953,
+            "y" : 0.597948717948718
+          }
+        },
+        {
+          "id" : "12-0046",
+          "time" : 21.710067607,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.37298682284040996,
+            "y" : 0.5825641025641025
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0047",
+          "time" : 21.908580681,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.5699121522693997,
+            "y" : 0.7071794871794872
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0048",
+          "time" : 22.688393419,
+          "holdEndTime" : 22.809606316,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.4355783308931186,
+            "y" : 0.7764102564102564
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0049",
+          "time" : 23.549396409,
+          "holdEndTime" : 23.891633593,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.4748717948717949,
+            "x" : 0.8012445095168375
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0050",
+          "time" : 24.433466999,
+          "holdEndTime" : 24.443216242,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.43025641025641026,
+            "x" : 0.28074670571010246
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0051",
+          "time" : 25.510770623,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.7635897435897436,
+            "x" : 0.7503660322108345
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0052",
+          "time" : 26.166777067,
+          "holdEndTime" : 26.35136272,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.7615384615384615,
+            "x" : 0.7829428989751098
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0053",
+          "time" : 26.409578647,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.383601756954612,
+            "y" : 0.8487179487179487
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0054",
+          "time" : 26.584891758,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.7066666666666667,
+            "x" : 0.828696925329429
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0055",
+          "time" : 26.599929746,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.8548717948717949,
+            "x" : 0.3678623718887262
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0056",
+          "time" : 27.043051136,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.7266666666666667,
+            "x" : 0.23938506588579794
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0057",
+          "time" : 27.055535647,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.6502564102564102,
+            "x" : 0.8576134699853587
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0058",
+          "time" : 27.833501558,
+          "holdEndTime" : 28.077273437,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.5548717948717948,
+            "x" : 0.8437042459736457
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0059",
+          "time" : 28.327535959,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.556923076923077,
+            "x" : 0.8795754026354319
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0060",
+          "time" : 28.342358283,
+          "holdEndTime" : 28.512326075,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.3356515373352855,
+            "y" : 0.5835897435897436
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0061",
+          "time" : 29.619884771,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.7591508052708639,
+            "y" : 0.5041025641025642
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0062",
+          "time" : 29.810388508,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.9584615384615385,
+            "x" : 0.013543191800878478
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0063",
+          "time" : 29.853248121,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.5656410256410257,
+            "x" : 0.40043923865300146
+          },
+          "noteType" : "tap"
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0064",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.6738653001464129,
+            "y" : 0.5076923076923077
+          },
+          "time" : 30.045074292
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0065",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.4169230769230769,
+            "x" : 0.4205710102489019
+          },
+          "time" : 30.395463445
+        },
+        {
+          "noteType" : "flick",
+          "id" : "12-0066",
+          "angleDegrees" : 262.6780917130263,
+          "normalizedPosition" : {
+            "x" : 0.571376281112738,
+            "y" : 0.38256410256410256
+          },
+          "time" : 30.876850344
+        },
+        {
+          "noteType" : "flick",
+          "id" : "12-0067",
+          "angleDegrees" : 274.35107795157387,
+          "normalizedPosition" : {
+            "y" : 0.6343589743589744,
+            "x" : 0.2869692532942899
+          },
+          "time" : 31.295892333
+        },
+        {
+          "noteType" : "flick",
+          "id" : "12-0068",
+          "angleDegrees" : 266.6822188316651,
+          "normalizedPosition" : {
+            "y" : 0.8128205128205128,
+            "x" : 0.7053440702781845
+          },
+          "time" : 31.762960128
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0069",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.835285505124451,
+            "y" : 0.6784615384615384
+          },
+          "time" : 32.209354929
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0070",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.2232796486090776,
+            "y" : 0.6738461538461539
+          },
+          "time" : 32.223281264
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0071",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.6184615384615385,
+            "x" : 0.8206442166910688
+          },
+          "time" : 32.630164233
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0072",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.6328205128205128,
+            "x" : 0.7609809663250366
+          },
+          "time" : 33.055306575
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0073",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.5158974358974359,
+            "x" : 0.6698389458272328
+          },
+          "time" : 33.513759023
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0074",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.5863836017569546,
+            "y" : 0.4323076923076923
+          },
+          "time" : 33.922565952
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0075",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.3184480234260615,
+            "y" : 0.44461538461538463
+          },
+          "time" : 34.814464599
+        },
+        {
+          "noteType" : "tap",
+          "id" : "12-0076",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.2492679355783309,
+            "y" : 0.5615384615384615
+          },
+          "time" : 35.248140118
+        },
+        {
+          "noteType" : "flick",
+          "id" : "12-0077",
+          "angleDegrees" : 355.9464457681686,
+          "normalizedPosition" : {
+            "y" : 0.7682051282051282,
+            "x" : 0.5113469985358712
+          },
+          "time" : 36.19884082
+        },
+        {
+          "noteType" : "flick",
+          "id" : "12-0078",
+          "angleDegrees" : 298.58049325681833,
+          "normalizedPosition" : {
+            "y" : 0.8051282051282052,
+            "x" : 0.39787701317715957
+          },
+          "time" : 36.590462469
+        },
+        {
+          "noteType" : "flick",
+          "id" : "12-0079",
+          "angleDegrees" : 263.2901631922431,
+          "normalizedPosition" : {
+            "x" : 0.5830893118594437,
+            "y" : 0.6666666666666666
+          },
+          "time" : 37.032587904
+        },
+        {
+          "noteType" : "flick",
+          "id" : "12-0080",
+          "angleDegrees" : 262.2552894535771,
+          "normalizedPosition" : {
+            "x" : 0.48060029282576866,
+            "y" : 0.7051282051282052
+          },
+          "time" : 37.424609079
+        },
+        {
+          "noteType" : "flick",
+          "id" : "12-0081",
+          "angleDegrees" : 13.781597235653624,
+          "normalizedPosition" : {
+            "x" : 0.8323572474377745,
+            "y" : 0.26564102564102565
+          },
+          "time" : 37.924808607
+        },
+        {
+          "angleDegrees" : 163.0043408049604,
+          "noteType" : "flick",
+          "normalizedPosition" : {
+            "x" : 0.2664714494875549,
+            "y" : 0.3030769230769231
+          },
+          "time" : 38.375907216,
+          "id" : "12-0082"
+        },
+        {
+          "angleDegrees" : 6.042235345975982,
+          "noteType" : "flick",
+          "normalizedPosition" : {
+            "x" : 0.7726939970717424,
+            "y" : 0.5
+          },
+          "time" : 38.783674359,
+          "id" : "12-0083"
+        },
+        {
+          "angleDegrees" : 160.2256456981242,
+          "noteType" : "flick",
+          "normalizedPosition" : {
+            "y" : 0.46974358974358976,
+            "x" : 0.23645680819912152
+          },
+          "time" : 39.150338985,
+          "id" : "12-0084"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "hold",
+          "normalizedPosition" : {
+            "y" : 0.3717948717948718,
+            "x" : 0.7939238653001464
+          },
+          "time" : 39.944906396,
+          "id" : "12-0085",
+          "holdEndTime" : 40.025930039
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "hold",
+          "normalizedPosition" : {
+            "x" : 0.386896046852123,
+            "y" : 0.6194871794871795
+          },
+          "time" : 40.413490248,
+          "id" : "12-0086",
+          "holdEndTime" : 40.444292359
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "hold",
+          "normalizedPosition" : {
+            "y" : 0.5671794871794872,
+            "x" : 0.5761346998535871
+          },
+          "time" : 41.700102853,
+          "id" : "12-0087",
+          "holdEndTime" : 41.845249955
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.34004392386530014,
+            "y" : 0.5138461538461538
+          },
+          "time" : 41.952109758,
+          "id" : "12-0088"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.1870424597364568,
+            "y" : 0.2553846153846154
+          },
+          "time" : 43.078776821,
+          "id" : "12-0089"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.3594871794871795,
+            "x" : 0.14092240117130309
+          },
+          "time" : 43.445669004,
+          "id" : "12-0090"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.7205128205128205,
+            "x" : 0.10029282576866765
+          },
+          "time" : 44.286918844,
+          "id" : "12-0091"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.15080527086383602,
+            "y" : 0.8292307692307692
+          },
+          "time" : 44.713723039,
+          "id" : "12-0092"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.8092307692307692,
+            "x" : 0.2935578330893119
+          },
+          "time" : 45.147205637,
+          "id" : "12-0093"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.6543589743589744,
+            "x" : 0.32027818448023426
+          },
+          "time" : 45.562441487,
+          "id" : "12-0094"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.38653001464128844,
+            "y" : 0.6169230769230769
+          },
+          "time" : 46.029370901,
+          "id" : "12-0095"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "hold",
+          "normalizedPosition" : {
+            "x" : 0.6248169838945827,
+            "y" : 0.5035897435897436
+          },
+          "time" : 42.600139522,
+          "id" : "12-0096",
+          "holdEndTime" : 46.121338006
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.38323572474377743,
+            "y" : 0.27025641025641023
+          },
+          "time" : 47.288639548,
+          "id" : "12-0097"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.3764102564102564,
+            "x" : 0.36054172767203513
+          },
+          "time" : 47.546950056,
+          "id" : "12-0098"
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "hold",
+          "normalizedPosition" : {
+            "x" : 0.5702781844802343,
+            "y" : 0.5123076923076924
+          },
+          "time" : 46.866800895,
+          "id" : "12-0099",
+          "holdEndTime" : 48.764451829
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 50.015051935,
+          "id" : "12-0100",
+          "normalizedPosition" : {
+            "x" : 0.7137628111273792,
+            "y" : 0.30512820512820515
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 50.448785746,
+          "id" : "12-0101",
+          "normalizedPosition" : {
+            "x" : 0.7364568081991215,
+            "y" : 0.41743589743589743
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 50.865469366,
+          "id" : "12-0102",
+          "normalizedPosition" : {
+            "y" : 0.5543589743589744,
+            "x" : 0.739385065885798
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 51.312072284,
+          "id" : "12-0103",
+          "normalizedPosition" : {
+            "y" : 0.6943589743589743,
+            "x" : 0.7064421669106882
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 49.53348134,
+          "id" : "12-0104",
+          "normalizedPosition" : {
+            "x" : 0.2683016105417277,
+            "y" : 0.37743589743589745
+          },
+          "noteType" : "hold",
+          "holdEndTime" : 51.342048744
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 51.749333945,
+          "id" : "12-0105",
+          "normalizedPosition" : {
+            "x" : 0.40226939970717424,
+            "y" : 0.5743589743589743
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 51.932821714,
+          "id" : "12-0106",
+          "normalizedPosition" : {
+            "x" : 0.6691068814055637,
+            "y" : 0.622051282051282
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 52.145686985,
+          "id" : "12-0107",
+          "normalizedPosition" : {
+            "y" : 0.6687179487179488,
+            "x" : 0.4586383601756955
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 52.366449159,
+          "id" : "12-0108",
+          "normalizedPosition" : {
+            "x" : 0.5640556368960469,
+            "y" : 0.6005128205128205
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 52.591550131,
+          "id" : "12-0109",
+          "normalizedPosition" : {
+            "y" : 0.6676923076923077,
+            "x" : 0.5223279648609077
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 53.425295117,
+          "id" : "12-0110",
+          "normalizedPosition" : {
+            "x" : 0.38653001464128844,
+            "y" : 0.5943589743589743
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 53.844753277,
+          "id" : "12-0111",
+          "normalizedPosition" : {
+            "x" : 0.6109077598828697,
+            "y" : 0.4297435897435897
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 54.044541002,
+          "id" : "12-0112",
+          "normalizedPosition" : {
+            "x" : 0.26244509516837483,
+            "y" : 0.37948717948717947
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 54.210781268,
+          "id" : "12-0113",
+          "normalizedPosition" : {
+            "y" : 0.318974358974359,
+            "x" : 0.6863103953147877
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 54.350879414,
+          "id" : "12-0114",
+          "normalizedPosition" : {
+            "y" : 0.4564102564102564,
+            "x" : 0.37042459736456806
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 54.551158776,
+          "id" : "12-0115",
+          "normalizedPosition" : {
+            "x" : 0.3715226939970717,
+            "y" : 0.4753846153846154
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 54.551290025,
+          "id" : "12-0116",
+          "normalizedPosition" : {
+            "x" : 0.6932650073206442,
+            "y" : 0.31076923076923074
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "time" : 55.459962975,
+          "id" : "12-0117",
+          "normalizedPosition" : {
+            "x" : 0.40519765739385066,
+            "y" : 0.5528205128205128
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0118",
+          "time" : 55.81170936,
+          "normalizedPosition" : {
+            "y" : 0.6943589743589743,
+            "x" : 0.6500732064421669
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0119",
+          "time" : 56.085150014,
+          "normalizedPosition" : {
+            "x" : 0.4472913616398243,
+            "y" : 0.7164102564102565
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0120",
+          "time" : 56.193582635,
+          "normalizedPosition" : {
+            "x" : 0.6361639824304539,
+            "y" : 0.798974358974359
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0121",
+          "time" : 56.611806581,
+          "normalizedPosition" : {
+            "x" : 0.6332357247437774,
+            "y" : 0.8692307692307693
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0122",
+          "time" : 57.027453088,
+          "normalizedPosition" : {
+            "x" : 0.736822840409956,
+            "y" : 0.8569230769230769
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0123",
+          "time" : 57.478658192,
+          "normalizedPosition" : {
+            "x" : 0.4158125915080527,
+            "y" : 0.5897435897435898
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0124",
+          "time" : 57.652753535,
+          "normalizedPosition" : {
+            "x" : 0.8078330893118595,
+            "y" : 0.3466666666666667
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0125",
+          "time" : 57.886185024,
+          "normalizedPosition" : {
+            "y" : 0.54,
+            "x" : 0.4033674963396779
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0126",
+          "time" : 58.261524369,
+          "normalizedPosition" : {
+            "x" : 0.568814055636896,
+            "y" : 0.15435897435897436
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0127",
+          "time" : 58.728471571,
+          "normalizedPosition" : {
+            "x" : 0.6551976573938506,
+            "y" : 0.14102564102564102
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0128",
+          "time" : 59.162023989,
+          "normalizedPosition" : {
+            "y" : 0.1605128205128205,
+            "x" : 0.7338945827232797
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0129",
+          "time" : 59.654091664,
+          "normalizedPosition" : {
+            "x" : 0.8382137628111274,
+            "y" : 0.1753846153846154
+          },
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "holdEndTime" : 60.596142933,
+          "id" : "12-0130",
+          "time" : 60.433440715,
+          "normalizedPosition" : {
+            "y" : 0.1564102564102564,
+            "x" : 0.3466325036603221
+          },
+          "angleDegrees" : 0,
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0131",
+          "time" : 60.854584039,
+          "normalizedPosition" : {
+            "x" : 0.6445827232796486,
+            "y" : 0.39897435897435896
+          },
+          "angleDegrees" : 260.63761218978556,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0132",
+          "time" : 61.079855199,
+          "normalizedPosition" : {
+            "x" : 0.410688140556369,
+            "y" : 0.44256410256410256
+          },
+          "angleDegrees" : 279.57422788509183,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0133",
+          "time" : 61.313143931,
+          "normalizedPosition" : {
+            "y" : 0.6820512820512821,
+            "x" : 0.5735724743777453
+          },
+          "angleDegrees" : 263.74777509312935,
+          "noteType" : "flick"
+        },
+        {
+          "holdEndTime" : 62.313938322,
+          "id" : "12-0134",
+          "time" : 62.112007626,
+          "normalizedPosition" : {
+            "y" : 0.3923076923076923,
+            "x" : 0.3096632503660322
+          },
+          "angleDegrees" : 0,
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0135",
+          "time" : 62.643952645,
+          "normalizedPosition" : {
+            "x" : 0.6039531478770132,
+            "y" : 0.38358974358974357
+          },
+          "angleDegrees" : 45.54984664692776,
+          "noteType" : "flick"
+        },
+        {
+          "angleDegrees" : 123.17851165939275,
+          "id" : "12-0136",
+          "time" : 62.877691957,
+          "normalizedPosition" : {
+            "y" : 0.43435897435897436,
+            "x" : 0.34077598828696926
+          },
+          "noteType" : "flick"
+        },
+        {
+          "angleDegrees" : 40.19032528796824,
+          "id" : "12-0137",
+          "time" : 63.089203791,
+          "normalizedPosition" : {
+            "x" : 0.7653733528550513,
+            "y" : 0.39487179487179486
+          },
+          "noteType" : "flick"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0138",
+          "time" : 63.950666468,
+          "holdEndTime" : 64.348257841,
+          "normalizedPosition" : {
+            "y" : 0.2528205128205128,
+            "x" : 0.66398243045388
+          },
+          "noteType" : "hold"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0139",
+          "time" : 64.490232941,
+          "normalizedPosition" : {
+            "x" : 0.212298682284041,
+            "y" : 0.24666666666666667
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0140",
+          "time" : 64.698568545,
+          "normalizedPosition" : {
+            "x" : 0.7961200585651538,
+            "y" : 0.34564102564102567
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0141",
+          "time" : 64.898657424,
+          "normalizedPosition" : {
+            "y" : 0.5241025641025641,
+            "x" : 0.2525622254758419
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0142",
+          "time" : 65.649072898,
+          "holdEndTime" : 65.649118481,
+          "normalizedPosition" : {
+            "x" : 0.5552708638360175,
+            "y" : 0.6564102564102564
+          },
+          "noteType" : "hold"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0143",
+          "time" : 65.95764771,
+          "normalizedPosition" : {
+            "y" : 0.556923076923077,
+            "x" : 0.10322108345534407
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0144",
+          "time" : 66.513922184,
+          "holdEndTime" : 66.549750688,
+          "normalizedPosition" : {
+            "x" : 0.5062225475841874,
+            "y" : 0.601025641025641
+          },
+          "noteType" : "hold"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0145",
+          "time" : 66.568162955,
+          "normalizedPosition" : {
+            "x" : 0.17898975109809664,
+            "y" : 0.502051282051282
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0146",
+          "time" : 66.924840998,
+          "normalizedPosition" : {
+            "y" : 0.45384615384615384,
+            "x" : 0.5622254758418741
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0147",
+          "time" : 67.778029636,
+          "normalizedPosition" : {
+            "y" : 0.38,
+            "x" : 0.5208638360175696
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0148",
+          "time" : 69.045862641,
+          "normalizedPosition" : {
+            "x" : 0.3415080527086384,
+            "y" : 0.4805128205128205
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0149",
+          "time" : 69.000094888,
+          "holdEndTime" : 69.89318431,
+          "normalizedPosition" : {
+            "x" : 0.698389458272328,
+            "y" : 0.4523076923076923
+          },
+          "noteType" : "hold"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0150",
+          "time" : 69.909091973,
+          "holdEndTime" : 69.942782824,
+          "normalizedPosition" : {
+            "y" : 0.6697435897435897,
+            "x" : 0.3294289897510981
+          },
+          "noteType" : "hold"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0151",
+          "time" : 70.326834063,
+          "normalizedPosition" : {
+            "x" : 0.695095168374817,
+            "y" : 0.5435897435897435
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0152",
+          "time" : 70.7853239,
+          "normalizedPosition" : {
+            "y" : 0.49743589743589745,
+            "x" : 0.7836749633967789
+          },
+          "noteType" : "tap"
+        },
+        {
+          "angleDegrees" : 0,
+          "id" : "12-0153",
+          "time" : 71.544119165,
+          "holdEndTime" : 71.812933553,
+          "normalizedPosition" : {
+            "y" : 0.33179487179487177,
+            "x" : 0.3953147877013177
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0154",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.5430769230769231,
+            "x" : 0.5937042459736457
+          },
+          "time" : 72.112090306,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0155",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.5917948717948718,
+            "x" : 0.6211566617862372
+          },
+          "time" : 72.519716529,
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0156",
+          "angleDegrees" : 0,
+          "holdEndTime" : 73.545458412,
+          "time" : 73.390296569,
+          "normalizedPosition" : {
+            "y" : 0.24615384615384617,
+            "x" : 0.6379941434846267
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0157",
+          "angleDegrees" : 250.4107854990367,
+          "normalizedPosition" : {
+            "y" : 0.5871794871794872,
+            "x" : 0.6453147877013177
+          },
+          "time" : 74.262367925,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0158",
+          "angleDegrees" : 296.18811069748085,
+          "normalizedPosition" : {
+            "y" : 0.5497435897435897,
+            "x" : 0.3396778916544656
+          },
+          "time" : 74.47918818,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0159",
+          "angleDegrees" : 236.00618035879666,
+          "normalizedPosition" : {
+            "y" : 0.7451282051282051,
+            "x" : 0.7459736456808199
+          },
+          "time" : 74.64586013,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0160",
+          "angleDegrees" : 39.948310656237574,
+          "normalizedPosition" : {
+            "x" : 0.8008784773060029,
+            "y" : 0.47435897435897434
+          },
+          "time" : 75.096149664,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0161",
+          "angleDegrees" : 151.05421966277575,
+          "normalizedPosition" : {
+            "y" : 0.6128205128205129,
+            "x" : 0.2781844802342606
+          },
+          "time" : 75.521381496,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0162",
+          "angleDegrees" : 33.31063082456081,
+          "normalizedPosition" : {
+            "y" : 0.10307692307692308,
+            "x" : 0.575402635431918
+          },
+          "time" : 75.921621113,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0163",
+          "angleDegrees" : 163.41266144307258,
+          "normalizedPosition" : {
+            "x" : 0.06405563689604685,
+            "y" : 0.1753846153846154
+          },
+          "time" : 76.046676784,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0164",
+          "angleDegrees" : 244.8030509104019,
+          "normalizedPosition" : {
+            "x" : 0.46449487554904834,
+            "y" : 0.8369230769230769
+          },
+          "time" : 76.280138109,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0165",
+          "angleDegrees" : 197.97841840882296,
+          "normalizedPosition" : {
+            "y" : 0.4846153846153846,
+            "x" : 0.5263543191800878
+          },
+          "time" : 76.755460523,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0166",
+          "angleDegrees" : 20.065704897423423,
+          "normalizedPosition" : {
+            "x" : 0.5018301610541728,
+            "y" : 0.27025641025641023
+          },
+          "time" : 77.147279165,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0167",
+          "angleDegrees" : 301.40516366592504,
+          "normalizedPosition" : {
+            "y" : 0.3251282051282051,
+            "x" : 0.4059297218155198
+          },
+          "time" : 77.580900049,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0168",
+          "angleDegrees" : 240.46742261149336,
+          "normalizedPosition" : {
+            "y" : 0.6512820512820513,
+            "x" : 0.6116398243045388
+          },
+          "time" : 77.789356997,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0169",
+          "angleDegrees" : 172.3115522300971,
+          "normalizedPosition" : {
+            "y" : 0.6143589743589744,
+            "x" : 0.23389458272327965
+          },
+          "time" : 78.081205555,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0170",
+          "angleDegrees" : 54.16234704572172,
+          "normalizedPosition" : {
+            "x" : 0.7745241581259151,
+            "y" : 0.6061538461538462
+          },
+          "time" : 78.131234944,
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0171",
+          "angleDegrees" : 35.36246188706905,
+          "normalizedPosition" : {
+            "y" : 0.5307692307692308,
+            "x" : 0.8385797950219619
+          },
+          "time" : 78.164529261,
+          "noteType" : "flick"
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.37333333333333335,
+            "x" : 0.7891654465592972
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 66.25050550713323,
+          "id" : "12-0172",
+          "time" : 78.410337704
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.6423865300146413,
+            "y" : 0.40512820512820513
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 239.9089863638667,
+          "id" : "12-0173",
+          "time" : 78.956737692
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.4338461538461538,
+            "x" : 0.7470717423133236
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 36.04062709282767,
+          "id" : "12-0174",
+          "time" : 79.490367196
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.6682051282051282,
+            "x" : 0.38726207906295756
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 129.28940686250039,
+          "id" : "12-0175",
+          "time" : 79.715450191
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.4981698389458272,
+            "y" : 0.5707692307692308
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 232.01088148092094,
+          "id" : "12-0176",
+          "time" : 79.882241403
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.4864568081991215,
+            "y" : 0.5533333333333333
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 21.14609417940768,
+          "id" : "12-0177",
+          "time" : 80.224133961
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.7112005856515373,
+            "y" : 0.6964102564102564
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0178",
+          "time" : 81.925139489
+        },
+        {
+          "holdEndTime" : 81.976425439,
+          "normalizedPosition" : {
+            "x" : 0.1533674963396779,
+            "y" : 0.517948717948718
+          },
+          "noteType" : "hold",
+          "angleDegrees" : 0,
+          "id" : "12-0179",
+          "time" : 81.033468046
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.34102564102564104,
+            "x" : 0.22181551976573938
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0180",
+          "time" : 83.159206725
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.17642752562225475,
+            "y" : 0.4066666666666667
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0181",
+          "time" : 83.377911782
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.191800878477306,
+            "y" : 0.6123076923076923
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0182",
+          "time" : 83.659521245
+        },
+        {
+          "holdEndTime" : 83.811279303,
+          "normalizedPosition" : {
+            "y" : 0.40923076923076923,
+            "x" : 0.9128843338213762
+          },
+          "noteType" : "hold",
+          "angleDegrees" : 0,
+          "id" : "12-0183",
+          "time" : 82.71698227
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.4835897435897436,
+            "x" : 0.3213762811127379
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0184",
+          "time" : 84.911428285
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.24307692307692308,
+            "x" : 0.40775988286969256
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0185",
+          "time" : 85.38540453
+        },
+        {
+          "holdEndTime" : 85.493824645,
+          "normalizedPosition" : {
+            "y" : 0.6943589743589743,
+            "x" : 0.6255490483162518
+          },
+          "noteType" : "hold",
+          "angleDegrees" : 0,
+          "id" : "12-0186",
+          "time" : 84.500191838
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.26205128205128203,
+            "x" : 0.7243777452415813
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0187",
+          "time" : 85.819015031
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.6343589743589744,
+            "x" : 0.5084187408491947
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0188",
+          "time" : 86.246302938
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.7856410256410257,
+            "x" : 0.3546852122986823
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "id" : "12-0189",
+          "time" : 86.361232192
+        },
+        {
+          "time" : 86.65298452,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.7215384615384616,
+            "x" : 0.6870424597364568
+          },
+          "noteType" : "tap",
+          "id" : "12-0190"
+        },
+        {
+          "time" : 87.995479365,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.5010256410256411,
+            "x" : 0.4019033674963397
+          },
+          "noteType" : "tap",
+          "id" : "12-0191"
+        },
+        {
+          "time" : 87.920023292,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.5948023426061494,
+            "y" : 0.24461538461538462
+          },
+          "noteType" : "hold",
+          "id" : "12-0192",
+          "holdEndTime" : 88.087115034
+        },
+        {
+          "time" : 88.387266215,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.5256222547584187,
+            "y" : 0.7348717948717949
+          },
+          "noteType" : "tap",
+          "id" : "12-0193"
+        },
+        {
+          "time" : 88.54565255,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.19948755490483164,
+            "y" : 0.40974358974358976
+          },
+          "noteType" : "tap",
+          "id" : "12-0194"
+        },
+        {
+          "time" : 88.754089602,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.7302564102564103,
+            "x" : 0.5878477306002928
+          },
+          "noteType" : "tap",
+          "id" : "12-0195"
+        },
+        {
+          "time" : 89.600121176,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.3271794871794872,
+            "x" : 0.3019765739385066
+          },
+          "noteType" : "hold",
+          "id" : "12-0196",
+          "holdEndTime" : 89.879709235
+        },
+        {
+          "time" : 90.013299143,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.4358974358974359,
+            "x" : 0.7525622254758418
+          },
+          "noteType" : "tap",
+          "id" : "12-0197"
+        },
+        {
+          "time" : 90.888826679,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.5194871794871795,
+            "x" : 0.2042459736456808
+          },
+          "noteType" : "tap",
+          "id" : "12-0198"
+        },
+        {
+          "time" : 91.097102258,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.46925329428989754,
+            "y" : 0.4338461538461538
+          },
+          "noteType" : "tap",
+          "id" : "12-0199"
+        },
+        {
+          "time" : 91.412136544,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.5338461538461539,
+            "x" : 0.4143484626647145
+          },
+          "noteType" : "tap",
+          "id" : "12-0200"
+        },
+        {
+          "time" : 91.830835354,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.23794871794871794,
+            "x" : 0.5538067349926794
+          },
+          "noteType" : "tap",
+          "id" : "12-0201"
+        },
+        {
+          "time" : 92.110654316,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.7653733528550513,
+            "y" : 0.18615384615384614
+          },
+          "noteType" : "tap",
+          "id" : "12-0202"
+        },
+        {
+          "time" : 92.314452241,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.7309663250366032,
+            "y" : 0.19025641025641027
+          },
+          "noteType" : "tap",
+          "id" : "12-0203"
+        },
+        {
+          "time" : 92.364564114,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.3535871156661786,
+            "y" : 0.7507692307692307
+          },
+          "noteType" : "tap",
+          "id" : "12-0204"
+        },
+        {
+          "time" : 92.6448004,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.49267935578330896,
+            "y" : 0.3353846153846154
+          },
+          "noteType" : "tap",
+          "id" : "12-0205"
+        },
+        {
+          "time" : 93.111427362,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.4308199121522694,
+            "y" : 0.3
+          },
+          "noteType" : "tap",
+          "id" : "12-0206"
+        },
+        {
+          "time" : 93.523581969,
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.19128205128205128,
+            "x" : 0.3246705710102489
+          },
+          "noteType" : "tap",
+          "id" : "12-0207"
+        },
+        {
+          "id" : "12-0208",
+          "time" : 93.932075773,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.22108345534407028,
+            "y" : 0.21794871794871795
+          }
+        },
+        {
+          "id" : "12-0209",
+          "time" : 94.478548754,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.28550512445095166,
+            "y" : 0.5051282051282051
+          }
+        },
+        {
+          "id" : "12-0210",
+          "time" : 94.732669017,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.8317948717948718,
+            "x" : 0.5834553440702782
+          }
+        },
+        {
+          "id" : "12-0211",
+          "time" : 95.166088741,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.7661054172767203,
+            "y" : 0.29794871794871797
+          }
+        },
+        {
+          "id" : "12-0212",
+          "time" : 95.377173563,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.41435897435897434,
+            "x" : 0.39092240117130306
+          }
+        },
+        {
+          "id" : "12-0213",
+          "time" : 95.616363442,
+          "noteType" : "flick",
+          "angleDegrees" : 283.13402230639633,
+          "normalizedPosition" : {
+            "y" : 0.661025641025641,
+            "x" : 0.578696925329429
+          }
+        },
+        {
+          "id" : "12-0214",
+          "time" : 96.745005275,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.7897435897435897,
+            "x" : 0.32650073206442165
+          }
+        },
+        {
+          "id" : "12-0215",
+          "time" : 96.910775018,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.8605417276720352,
+            "y" : 0.2651282051282051
+          }
+        },
+        {
+          "id" : "12-0216",
+          "time" : 97.192306773,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.31002928257686674,
+            "y" : 0.44871794871794873
+          }
+        },
+        {
+          "id" : "12-0217",
+          "time" : 97.392474851,
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.31259150805270863,
+            "y" : 0.46205128205128204
+          }
+        },
+        {
+          "id" : "12-0218",
+          "time" : 97.811706181,
+          "noteType" : "flick",
+          "angleDegrees" : 264.0938588862295,
+          "normalizedPosition" : {
+            "y" : 0.4676923076923077,
+            "x" : 0.4970717423133236
+          }
+        },
+        {
+          "id" : "12-0219",
+          "time" : 98.27855097,
+          "noteType" : "flick",
+          "angleDegrees" : 50.27067075164096,
+          "normalizedPosition" : {
+            "x" : 0.7624450951683748,
+            "y" : 0.5794871794871795
+          }
+        },
+        {
+          "id" : "12-0220",
+          "time" : 98.493048046,
+          "noteType" : "flick",
+          "angleDegrees" : 121.23921488820876,
+          "normalizedPosition" : {
+            "x" : 0.3374816983894583,
+            "y" : 0.4328205128205128
+          }
+        },
+        {
+          "id" : "12-0221",
+          "time" : 98.711185424,
+          "noteType" : "flick",
+          "angleDegrees" : 216.637107542275,
+          "normalizedPosition" : {
+            "y" : 0.5661538461538461,
+            "x" : 0.4754758418740849
+          }
+        },
+        {
+          "id" : "12-0222",
+          "time" : 98.91845077,
+          "noteType" : "flick",
+          "angleDegrees" : 306.0046549963207,
+          "normalizedPosition" : {
+            "y" : 0.3194871794871795,
+            "x" : 0.2108345534407028
+          }
+        },
+        {
+          "id" : "12-0223",
+          "time" : 99.110837649,
+          "noteType" : "flick",
+          "angleDegrees" : 38.04704253182609,
+          "normalizedPosition" : {
+            "y" : 0.2276923076923077,
+            "x" : 0.7115666178623719
+          }
+        },
+        {
+          "id" : "12-0224",
+          "time" : 99.193412415,
+          "noteType" : "flick",
+          "angleDegrees" : 264.23736711340155,
+          "normalizedPosition" : {
+            "x" : 0.45571010248901905,
+            "y" : 0.7082051282051282
+          }
+        },
+        {
+          "id" : "12-0225",
+          "time" : 99.478613276,
+          "noteType" : "flick",
+          "angleDegrees" : 232.41811942571775,
+          "normalizedPosition" : {
+            "x" : 0.4128843338213763,
+            "y" : 0.6415384615384615
+          }
+        },
+        {
+          "time" : 99.677686443,
+          "angleDegrees" : 312.63862534182437,
+          "noteType" : "flick",
+          "id" : "12-0226",
+          "normalizedPosition" : {
+            "y" : 0.3923076923076923,
+            "x" : 0.20717423133235724
+          }
+        },
+        {
+          "time" : 99.81898326,
+          "angleDegrees" : 222.7335399156839,
+          "noteType" : "flick",
+          "id" : "12-0227",
+          "normalizedPosition" : {
+            "x" : 0.6658125915080527,
+            "y" : 0.6241025641025642
+          }
+        },
+        {
+          "time" : 100.029645019,
+          "angleDegrees" : 146.48311818188648,
+          "noteType" : "flick",
+          "id" : "12-0228",
+          "normalizedPosition" : {
+            "x" : 0.16617862371888725,
+            "y" : 0.46
+          }
+        },
+        {
+          "time" : 100.110652551,
+          "angleDegrees" : 207.19696429889896,
+          "noteType" : "flick",
+          "id" : "12-0229",
+          "normalizedPosition" : {
+            "x" : 0.6826500732064422,
+            "y" : 0.676923076923077
+          }
+        },
+        {
+          "time" : 100.252380781,
+          "angleDegrees" : 26.968062909300894,
+          "noteType" : "flick",
+          "id" : "12-0230",
+          "normalizedPosition" : {
+            "x" : 0.7485358711566618,
+            "y" : 0.6035897435897436
+          }
+        },
+        {
+          "time" : 100.309493137,
+          "angleDegrees" : 138.72788342956204,
+          "noteType" : "flick",
+          "id" : "12-0231",
+          "normalizedPosition" : {
+            "x" : 0.229502196193265,
+            "y" : 0.4897435897435897
+          }
+        },
+        {
+          "time" : 100.419144095,
+          "angleDegrees" : 27.072080237992765,
+          "noteType" : "flick",
+          "id" : "12-0232",
+          "normalizedPosition" : {
+            "x" : 0.7316983894582724,
+            "y" : 0.6276923076923077
+          }
+        },
+        {
+          "time" : 100.577574728,
+          "angleDegrees" : 140.1075019431191,
+          "noteType" : "flick",
+          "id" : "12-0233",
+          "normalizedPosition" : {
+            "x" : 0.23718887262079064,
+            "y" : 0.5143589743589744
+          }
+        },
+        {
+          "time" : 100.592781059,
+          "angleDegrees" : 26.26663835708311,
+          "noteType" : "flick",
+          "id" : "12-0234",
+          "normalizedPosition" : {
+            "x" : 0.7591508052708639,
+            "y" : 0.6410256410256411
+          }
+        },
+        {
+          "time" : 100.761106943,
+          "angleDegrees" : 22.22503045111356,
+          "noteType" : "flick",
+          "id" : "12-0235",
+          "normalizedPosition" : {
+            "x" : 0.6976573938506588,
+            "y" : 0.6923076923076923
+          }
+        },
+        {
+          "time" : 100.876781975,
+          "angleDegrees" : 147.25175097347318,
+          "noteType" : "flick",
+          "id" : "12-0236",
+          "normalizedPosition" : {
+            "x" : 0.10029282576866765,
+            "y" : 0.4123076923076923
+          }
+        },
+        {
+          "time" : 100.944434576,
+          "angleDegrees" : 21.737853461933632,
+          "noteType" : "flick",
+          "id" : "12-0237",
+          "normalizedPosition" : {
+            "y" : 0.6738461538461539,
+            "x" : 0.8283308931185944
+          }
+        },
+        {
+          "time" : 101.061192941,
+          "angleDegrees" : 145.79513224112014,
+          "noteType" : "flick",
+          "id" : "12-0238",
+          "normalizedPosition" : {
+            "y" : 0.4076923076923077,
+            "x" : 0.11566617862371889
+          }
+        },
+        {
+          "time" : 101.394813598,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "id" : "12-0239",
+          "normalizedPosition" : {
+            "x" : 0.6486090775988287,
+            "y" : 0.31435897435897436
+          }
+        },
+        {
+          "time" : 101.761588852,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "id" : "12-0240",
+          "normalizedPosition" : {
+            "x" : 0.3557833089311859,
+            "y" : 0.4641025641025641
+          }
+        },
+        {
+          "time" : 101.986935879,
+          "angleDegrees" : 302.2756443145776,
+          "noteType" : "flick",
+          "id" : "12-0241",
+          "normalizedPosition" : {
+            "y" : 0.7769230769230769,
+            "x" : 0.6138360175695461
+          }
+        },
+        {
+          "time" : 102.178497442,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "id" : "12-0242",
+          "normalizedPosition" : {
+            "x" : 0.4780380673499268,
+            "y" : 0.8194871794871795
+          }
+        },
+        {
+          "time" : 102.377908147,
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "id" : "12-0243",
+          "normalizedPosition" : {
+            "x" : 0.7785505124450952,
+            "y" : 0.5456410256410257
+          }
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.3374816983894583,
+            "y" : 0.35025641025641024
+          },
+          "id" : "12-0244",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 102.920632101
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.14512820512820512,
+            "x" : 0.4992679355783309
+          },
+          "id" : "12-0245",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 103.254398741
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.3671794871794872,
+            "x" : 0.31259150805270863
+          },
+          "id" : "12-0246",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 103.844786665
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.4842606149341142,
+            "y" : 0.20666666666666667
+          },
+          "id" : "12-0247",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 104.087975689
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.2635431918008785,
+            "y" : 0.19641025641025642
+          },
+          "id" : "12-0248",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 104.578623324
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.2205128205128205,
+            "x" : 0.8645680819912153
+          },
+          "id" : "12-0249",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 105.280488879
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.22071742313323572,
+            "y" : 0.8717948717948718
+          },
+          "id" : "12-0250",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 105.514032198
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.5256222547584187,
+            "y" : 0.7287179487179487
+          },
+          "id" : "12-0251",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 105.964122475
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.14677891654465594,
+            "y" : 0.1523076923076923
+          },
+          "id" : "12-0252",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 105.997379066
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.15692307692307692,
+            "x" : 0.2247437774524158
+          },
+          "id" : "12-0253",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 106.345460005
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.11794871794871795,
+            "x" : 0.3103953147877013
+          },
+          "id" : "12-0254",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 106.781235277
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.4055636896046852,
+            "y" : 0.08564102564102564
+          },
+          "id" : "12-0255",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 107.223237481
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.08307692307692308,
+            "x" : 0.5084187408491947
+          },
+          "id" : "12-0256",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 107.66512877
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.8067349926793558,
+            "y" : 0.5846153846153846
+          },
+          "id" : "12-0257",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 108.490596285
+        },
+        {
+          "normalizedPosition" : {
+            "y" : 0.561025641025641,
+            "x" : 0.36127379209370425
+          },
+          "id" : "12-0258",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 108.690732189
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.5183016105417276,
+            "y" : 0.823076923076923
+          },
+          "id" : "12-0259",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 108.877520958
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.6943631039531479,
+            "y" : 0.3528205128205128
+          },
+          "id" : "12-0260",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 109.316007321
+        },
+        {
+          "normalizedPosition" : {
+            "x" : 0.4403367496339678,
+            "y" : 0.24205128205128204
+          },
+          "id" : "12-0261",
+          "noteType" : "tap",
+          "angleDegrees" : 0,
+          "time" : 109.33463587
+        },
+        {
+          "time" : 110.199825049,
+          "normalizedPosition" : {
+            "y" : 0.5302564102564102,
+            "x" : 0.7038799414348462
+          },
+          "id" : "12-0262",
+          "angleDegrees" : 259.8493517197326,
+          "noteType" : "flick"
+        },
+        {
+          "time" : 110.400052876,
+          "normalizedPosition" : {
+            "y" : 0.8005128205128205,
+            "x" : 0.5058565153733529
+          },
+          "id" : "12-0263",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 110.850197686,
+          "normalizedPosition" : {
+            "y" : 0.298974358974359,
+            "x" : 0.39787701317715957
+          },
+          "id" : "12-0264",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 111.078181613,
+          "normalizedPosition" : {
+            "x" : 0.3898243045387994,
+            "y" : 0.3569230769230769
+          },
+          "id" : "12-0265",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 111.745510438,
+          "normalizedPosition" : {
+            "x" : 0.3052708638360176,
+            "y" : 0.6666666666666666
+          },
+          "id" : "12-0266",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 112.192793443,
+          "normalizedPosition" : {
+            "y" : 0.33282051282051284,
+            "x" : 0.14128843338213762
+          },
+          "id" : "12-0267",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 112.417803763,
+          "normalizedPosition" : {
+            "y" : 0.17076923076923076,
+            "x" : 0.9099560761346999
+          },
+          "id" : "12-0268",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 112.644761567,
+          "normalizedPosition" : {
+            "y" : 0.30666666666666664,
+            "x" : 0.8993411420204978
+          },
+          "id" : "12-0269",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 113.045106059,
+          "normalizedPosition" : {
+            "x" : 0.8839677891654466,
+            "y" : 0.6907692307692308
+          },
+          "id" : "12-0270",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 113.31178946,
+          "normalizedPosition" : {
+            "x" : 0.876281112737921,
+            "y" : 0.8758974358974358
+          },
+          "id" : "12-0271",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 113.718525735,
+          "normalizedPosition" : {
+            "y" : 0.5379487179487179,
+            "x" : 0.29099560761347
+          },
+          "id" : "12-0272",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 114.093922035,
+          "normalizedPosition" : {
+            "y" : 0.38769230769230767,
+            "x" : 0.5691800878477306
+          },
+          "id" : "12-0273",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 114.494093369,
+          "normalizedPosition" : {
+            "x" : 0.4286237188872621,
+            "y" : 0.32051282051282054
+          },
+          "id" : "12-0274",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 115.346513406,
+          "normalizedPosition" : {
+            "x" : 0.2177891654465593,
+            "y" : 0.49128205128205127
+          },
+          "id" : "12-0275",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 115.786670399,
+          "normalizedPosition" : {
+            "x" : 0.1533674963396779,
+            "y" : 0.3282051282051282
+          },
+          "id" : "12-0276",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 116.028305381,
+          "normalizedPosition" : {
+            "x" : 0.12225475841874085,
+            "y" : 0.2323076923076923
+          },
+          "id" : "12-0277",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 116.213662654,
+          "normalizedPosition" : {
+            "x" : 0.1328696925329429,
+            "y" : 0.14923076923076922
+          },
+          "id" : "12-0278",
+          "angleDegrees" : 0,
+          "noteType" : "tap"
+        },
+        {
+          "time" : 115.280419017,
+          "holdEndTime" : 116.495299471,
+          "normalizedPosition" : {
+            "x" : 0.6076134699853587,
+            "y" : 0.2841025641025641
+          },
+          "id" : "12-0279",
+          "angleDegrees" : 0,
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0280",
+          "angleDegrees" : 0,
+          "time" : 117.153861496,
+          "normalizedPosition" : {
+            "x" : 0.3396778916544656,
+            "y" : 0.4682051282051282
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0281",
+          "angleDegrees" : 0,
+          "time" : 117.578443184,
+          "normalizedPosition" : {
+            "y" : 0.6666666666666666,
+            "x" : 0.3528550512445095
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0282",
+          "angleDegrees" : 0,
+          "time" : 117.762592103,
+          "normalizedPosition" : {
+            "y" : 0.7323076923076923,
+            "x" : 0.33162518301610544
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0283",
+          "angleDegrees" : 132.13759477388828,
+          "time" : 118.021103819,
+          "normalizedPosition" : {
+            "x" : 0.24963396778916544,
+            "y" : 0.6405128205128205
+          },
+          "noteType" : "flick"
+        },
+        {
+          "id" : "12-0284",
+          "angleDegrees" : 0,
+          "holdEndTime" : 118.488157806,
+          "time" : 117.066791244,
+          "normalizedPosition" : {
+            "y" : 0.4328205128205128,
+            "x" : 0.5885797950219619
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0285",
+          "angleDegrees" : 0,
+          "time" : 118.845000626,
+          "normalizedPosition" : {
+            "x" : 0.6083455344070278,
+            "y" : 0.44461538461538463
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0286",
+          "angleDegrees" : 0,
+          "time" : 119.321991042,
+          "normalizedPosition" : {
+            "x" : 0.667276720351391,
+            "y" : 0.6820512820512821
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0287",
+          "angleDegrees" : 0,
+          "time" : 119.521982566,
+          "normalizedPosition" : {
+            "y" : 0.66,
+            "x" : 0.7353587115666179
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0288",
+          "angleDegrees" : 0,
+          "time" : 119.755485302,
+          "normalizedPosition" : {
+            "y" : 0.5174358974358975,
+            "x" : 0.8448023426061494
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0289",
+          "angleDegrees" : 0,
+          "holdEndTime" : 119.989021979,
+          "time" : 118.861710606,
+          "normalizedPosition" : {
+            "x" : 0.27855051244509516,
+            "y" : 0.28923076923076924
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0290",
+          "angleDegrees" : 0,
+          "time" : 120.578593863,
+          "normalizedPosition" : {
+            "x" : 0.2792825768667643,
+            "y" : 0.6271794871794871
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0291",
+          "angleDegrees" : 0,
+          "time" : 121.156196304,
+          "normalizedPosition" : {
+            "y" : 0.7435897435897436,
+            "x" : 0.195095168374817
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0292",
+          "angleDegrees" : 0,
+          "holdEndTime" : 121.615046497,
+          "time" : 120.533418418,
+          "normalizedPosition" : {
+            "x" : 0.8012445095168375,
+            "y" : 0.2312820512820513
+          },
+          "noteType" : "hold"
+        },
+        {
+          "id" : "12-0293",
+          "angleDegrees" : 0,
+          "time" : 121.781544763,
+          "normalizedPosition" : {
+            "x" : 0.2613469985358712,
+            "y" : 0.3292307692307692
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0294",
+          "angleDegrees" : 0,
+          "time" : 122.415330575,
+          "normalizedPosition" : {
+            "y" : 0.5446153846153846,
+            "x" : 0.773792093704246
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0295",
+          "angleDegrees" : 0,
+          "time" : 122.565320079,
+          "normalizedPosition" : {
+            "y" : 0.597948717948718,
+            "x" : 0.20314787701317716
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0296",
+          "angleDegrees" : 0,
+          "time" : 122.74883342,
+          "normalizedPosition" : {
+            "x" : 0.20900439238653,
+            "y" : 0.6041025641025641
+          },
+          "noteType" : "tap"
+        },
+        {
+          "id" : "12-0297",
+          "angleDegrees" : 0,
+          "time" : 122.76799163,
+          "normalizedPosition" : {
+            "x" : 0.6562957540263543,
+            "y" : 0.261025641025641
+          },
+          "noteType" : "tap"
+        },
+        {
+          "time" : 122.990563575,
+          "id" : "12-0298",
+          "normalizedPosition" : {
+            "x" : 0.654099560761347,
+            "y" : 0.31025641025641026
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 123.449168437,
+          "id" : "12-0299",
+          "normalizedPosition" : {
+            "y" : 0.37846153846153846,
+            "x" : 0.25768667642752563
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 123.916086268,
+          "id" : "12-0300",
+          "normalizedPosition" : {
+            "x" : 0.3821376281112738,
+            "y" : 0.6271794871794871
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 124.145803155,
+          "id" : "12-0301",
+          "normalizedPosition" : {
+            "y" : 0.4846153846153846,
+            "x" : 0.5757686676427526
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 124.38311881,
+          "id" : "12-0302",
+          "normalizedPosition" : {
+            "x" : 0.17898975109809664,
+            "y" : 0.5461538461538461
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 124.525048374,
+          "id" : "12-0303",
+          "normalizedPosition" : {
+            "x" : 0.438506588579795,
+            "y" : 0.5215384615384615
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 124.700224234,
+          "id" : "12-0304",
+          "normalizedPosition" : {
+            "y" : 0.583076923076923,
+            "x" : 0.45241581259150804
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 124.878575442,
+          "id" : "12-0305",
+          "normalizedPosition" : {
+            "y" : 0.5128205128205128,
+            "x" : 0.5025622254758418
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 125.312130107,
+          "id" : "12-0306",
+          "normalizedPosition" : {
+            "y" : 0.3723076923076923,
+            "x" : 0.2554904831625183
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 126.484348899,
+          "id" : "12-0307",
+          "normalizedPosition" : {
+            "x" : 0.7269399707174231,
+            "y" : 0.8133333333333334
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 126.68446719,
+          "id" : "12-0308",
+          "normalizedPosition" : {
+            "y" : 0.8271794871794872,
+            "x" : 0.7353587115666179
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 126.912318233,
+          "id" : "12-0309",
+          "normalizedPosition" : {
+            "x" : 0.22364568081991215,
+            "y" : 0.4584615384615385
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 127.378666626,
+          "id" : "12-0310",
+          "normalizedPosition" : {
+            "y" : 0.28923076923076924,
+            "x" : 0.6698389458272328
+          },
+          "noteType" : "tap",
+          "angleDegrees" : 0
+        },
+        {
+          "time" : 128.245485712,
+          "id" : "12-0311",
+          "normalizedPosition" : {
+            "x" : 0.5076866764275256,
+            "y" : 0.5251282051282051
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 263.78436410029735
+        },
+        {
+          "time" : 128.627183935,
+          "id" : "12-0312",
+          "normalizedPosition" : {
+            "y" : 0.45384615384615384,
+            "x" : 0.6277452415812591
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 42.565601028088146
+        },
+        {
+          "time" : 129.079153158,
+          "id" : "12-0313",
+          "normalizedPosition" : {
+            "x" : 0.27232796486090777,
+            "y" : 0.47025641025641024
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 310.8653286262636
+        },
+        {
+          "time" : 129.485996071,
+          "id" : "12-0314",
+          "normalizedPosition" : {
+            "y" : 0.7046153846153846,
+            "x" : 0.6442166910688141
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 232.7384380871439
+        },
+        {
+          "time" : 129.746363233,
+          "id" : "12-0315",
+          "normalizedPosition" : {
+            "x" : 0.3532210834553441,
+            "y" : 0.6784615384615384
+          },
+          "noteType" : "flick",
+          "angleDegrees" : 129.23211110208587
+        },
+        {
+          "angleDegrees" : 52.6288031853933,
+          "normalizedPosition" : {
+            "y" : 0.28102564102564104,
+            "x" : 0.6683748169838946
+          },
+          "noteType" : "flick",
+          "id" : "12-0316",
+          "time" : 129.919587706
+        },
+        {
+          "angleDegrees" : 317.23117460803127,
+          "normalizedPosition" : {
+            "y" : 0.3641025641025641,
+            "x" : 0.2862371888726208
+          },
+          "noteType" : "flick",
+          "id" : "12-0317",
+          "time" : 130.286482398
+        },
+        {
+          "angleDegrees" : 238.8212957411833,
+          "normalizedPosition" : {
+            "x" : 0.5025622254758418,
+            "y" : 0.49948717948717947
+          },
+          "noteType" : "flick",
+          "id" : "12-0318",
+          "time" : 130.746163725
+        },
+        {
+          "angleDegrees" : 142.34527775116408,
+          "normalizedPosition" : {
+            "x" : 0.34773060029282576,
+            "y" : 0.38358974358974357
+          },
+          "noteType" : "flick",
+          "id" : "12-0319",
+          "time" : 131.162190575
+        },
+        {
+          "angleDegrees" : 33.9964591482505,
+          "normalizedPosition" : {
+            "x" : 0.75,
+            "y" : 0.6292307692307693
+          },
+          "noteType" : "flick",
+          "id" : "12-0320",
+          "time" : 131.362148227
+        },
+        {
+          "angleDegrees" : 144.15188874894764,
+          "normalizedPosition" : {
+            "y" : 0.46153846153846156,
+            "x" : 0.2591508052708638
+          },
+          "noteType" : "flick",
+          "id" : "12-0321",
+          "time" : 131.62060057
+        },
+        {
+          "angleDegrees" : 258.69006752597977,
+          "normalizedPosition" : {
+            "y" : 0.3153846153846154,
+            "x" : 0.6716691068814056
+          },
+          "noteType" : "flick",
+          "id" : "12-0322",
+          "time" : 132.046136284
+        },
+        {
+          "angleDegrees" : 44.267825422436204,
+          "normalizedPosition" : {
+            "y" : 0.5482051282051282,
+            "x" : 0.7177891654465594
+          },
+          "noteType" : "flick",
+          "id" : "12-0323",
+          "time" : 132.879641724
+        },
+        {
+          "angleDegrees" : 132.6088182166764,
+          "normalizedPosition" : {
+            "y" : 0.5876923076923077,
+            "x" : 0.2836749633967789
+          },
+          "noteType" : "flick",
+          "id" : "12-0324",
+          "time" : 133.112796098
+        },
+        {
+          "angleDegrees" : 223.77066551352212,
+          "normalizedPosition" : {
+            "x" : 0.513177159590044,
+            "y" : 0.6061538461538462
+          },
+          "noteType" : "flick",
+          "id" : "12-0325",
+          "time" : 133.329960598
+        },
+        {
+          "angleDegrees" : 302.1148306002967,
+          "normalizedPosition" : {
+            "x" : 0.28038067349926793,
+            "y" : 0.40564102564102567
+          },
+          "noteType" : "flick",
+          "id" : "12-0326",
+          "time" : 133.72200497
+        },
+        {
+          "angleDegrees" : 45.349360179502796,
+          "normalizedPosition" : {
+            "x" : 0.5007320644216691,
+            "y" : 0.20051282051282052
+          },
+          "noteType" : "flick",
+          "id" : "12-0327",
+          "time" : 134.197087483
+        },
+        {
+          "angleDegrees" : 317.78688533847213,
+          "normalizedPosition" : {
+            "x" : 0.38616398243045386,
+            "y" : 0.44564102564102565
+          },
+          "noteType" : "flick",
+          "id" : "12-0328",
+          "time" : 134.622314484
+        },
+        {
+          "angleDegrees" : 223.91535579130107,
+          "normalizedPosition" : {
+            "y" : 0.6456410256410257,
+            "x" : 0.6694729136163983
+          },
+          "noteType" : "flick",
+          "id" : "12-0329",
+          "time" : 135.089331637
+        },
+        {
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.19765739385065886,
+            "y" : 0.6625641025641026
+          },
+          "noteType" : "tap",
+          "id" : "12-0330",
+          "time" : 135.498152257
+        },
+        {
+          "angleDegrees" : 243.36177417622764,
+          "normalizedPosition" : {
+            "y" : 0.4748717948717949,
+            "x" : 0.6240849194729137
+          },
+          "noteType" : "flick",
+          "id" : "12-0331",
+          "time" : 136.531952032
+        },
+        {
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "y" : 0.2866666666666667,
+            "x" : 0.2767203513909224
+          },
+          "noteType" : "tap",
+          "id" : "12-0332",
+          "time" : 136.781910633
+        },
+        {
+          "angleDegrees" : 244.88516511385544,
+          "normalizedPosition" : {
+            "x" : 0.8396778916544656,
+            "y" : 0.5697435897435897
+          },
+          "noteType" : "flick",
+          "id" : "12-0333",
+          "time" : 137.182161088
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.37225475841874084,
+            "y" : 0.3958974358974359
+          },
+          "id" : "12-0334",
+          "time" : 137.632589838
+        },
+        {
+          "angleDegrees" : 56.73512525859915,
+          "noteType" : "flick",
+          "normalizedPosition" : {
+            "x" : 0.6976573938506588,
+            "y" : 0.6994871794871795
+          },
+          "id" : "12-0335",
+          "time" : 138.066225945
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.35431918008784774,
+            "y" : 0.7251282051282051
+          },
+          "id" : "12-0336",
+          "time" : 138.266124234
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.2353846153846154,
+            "x" : 0.6028550512445096
+          },
+          "id" : "12-0337",
+          "time" : 138.424541854
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.24341142020497805,
+            "y" : 0.5574358974358974
+          },
+          "id" : "12-0338",
+          "time" : 138.913253135
+        },
+        {
+          "angleDegrees" : 275.3145456699448,
+          "noteType" : "flick",
+          "normalizedPosition" : {
+            "y" : 0.5723076923076923,
+            "x" : 0.6515373352855052
+          },
+          "id" : "12-0339",
+          "time" : 139.350060053
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "y" : 0.2553846153846154,
+            "x" : 0.34480234260614934
+          },
+          "id" : "12-0340",
+          "time" : 139.746469962
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.5889458272327965,
+            "y" : 0.7912820512820513
+          },
+          "id" : "12-0341",
+          "time" : 139.958908371
+        },
+        {
+          "holdEndTime" : 140.984461764,
+          "angleDegrees" : 0,
+          "noteType" : "hold",
+          "normalizedPosition" : {
+            "y" : 0.21076923076923076,
+            "x" : 0.6961932650073206
+          },
+          "id" : "12-0342",
+          "time" : 140.951116291
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.7994143484626647,
+            "y" : 0.4897435897435897
+          },
+          "id" : "12-0343",
+          "time" : 141.526341741
+        },
+        {
+          "angleDegrees" : 0,
+          "noteType" : "tap",
+          "normalizedPosition" : {
+            "x" : 0.4095900439238653,
+            "y" : 0.6005128205128205
+          },
+          "id" : "12-0344",
+          "time" : 141.918287949
+        },
+        {
+          "holdEndTime" : 144.380173885,
+          "angleDegrees" : 0,
+          "noteType" : "hold",
+          "normalizedPosition" : {
+            "x" : 0.5614934114202049,
+            "y" : 0.3994871794871795
+          },
+          "id" : "12-0345",
+          "time" : 142.700122379
         }
-    ]
+      ]
+
     
 }
