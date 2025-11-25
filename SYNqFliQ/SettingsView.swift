@@ -37,6 +37,12 @@ struct SettingsView: View {
     }
 
     var body: some View {
+        VStack(spacing: 8) {
+            Text("This is SettingsView")
+                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
+        }
         NavigationView {
             Form {
                 Section(header: Text("Approach (ノーツ出現 / 判定)")) {
@@ -52,6 +58,12 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                         Slider(value: approachSpeedBinding, in: 100...3000, step: 1)
                     }
+/*                    Spacer()
+                    let exampleDistance = settings.approachDistanceFraction * min(geo.size.width, geo.size.height)
+                    let derivedDuration = exampleDistance / max(settings.approachSpeed, 1.0)
+                    Text("例 dur: \(String(format: "%.2f", derivedDuration))s")
+                        .foregroundColor(.gray)
+*/
                 }
 
                 Section(header: Text("Hold (ホールド)")) {

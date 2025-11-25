@@ -70,6 +70,12 @@ struct SongSelectionView: View {
     }
 
     var body: some View {
+        VStack(spacing: 8) {
+            Text("This is SongSelectionView")
+                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
+        }
         SongSelectView(songs: songs, onChoose: onChoose, onCancel: onClose)
     }
 
@@ -190,11 +196,12 @@ struct SongSelectionView: View {
                                 
                                 HStack(spacing: 18) {
                                     let verticalShift: CGFloat = -min(geo.size.height * 0.06, 48) // move up by 6% of height, max 48pt
-                                    difficultyButton("Base") { choose(song: song, difficulty: "Base") }
-                                    difficultyButton("Flow") { choose(song: song, difficulty: "Flow") }
-                                    difficultyButton("Core") { choose(song: song, difficulty: "Core") }
-                                    difficultyButton("Limit"){choose(song: song, difficulty:"Limit")}
-                                    difficultyButton("Infinity"){choose(song:song, difficulty:"Infinity")}
+                                    // use the new difficultyButton that includes level if available
+                                    difficultyButton("Base", for: song) { choose(song: song, difficulty: "Base") }
+                                    difficultyButton("Flow", for: song) { choose(song: song, difficulty: "Flow") }
+                                    difficultyButton("Core", for: song) { choose(song: song, difficulty: "Core") }
+                                    difficultyButton("Limit", for: song) { choose(song: song, difficulty: "Limit") }
+                                    difficultyButton("Infinity", for: song) { choose(song: song, difficulty: "Infinity") }
                                 }
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                                 .offset(y: min(dragOffsetY, 200)+verticalShift)
@@ -366,9 +373,12 @@ struct SongSelectionView: View {
 
         // MARK: - difficulty button
         @ViewBuilder
-        private func difficultyButton(_ text: String, action: @escaping ()->Void) -> some View {
+        private func difficultyButton(_ text: String, for song: SongSummary, action: @escaping ()->Void) -> some View {
+            // Compose label including level if available
+            let levelStr = levelText(for: song, difficulty: text)
+            let label = levelStr.map { "\(text)\n\($0)" } ?? text
             Button(action: action) {
-                Text(text)
+                Text(label)
                     .font(.headline)
                     .padding(.vertical, 10)
                     .padding(.horizontal, 10)
@@ -377,6 +387,38 @@ struct SongSelectionView: View {
                     .cornerRadius(10)
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.08)))
             }
+        }
+
+        // helper: attempt to find a level string for the given song/difficulty
+        private func levelText(for song: SongSummary, difficulty: String) -> String? {
+            // find the bundled entry matching this title/difficulty
+            guard let entry = findEntry(for: song, matchingDifficulty: difficulty) else { return nil }
+
+            // try common property names via Mirror to be resilient to sheet model shape
+            let m = Mirror(reflecting: entry.sheet)
+            for child in m.children {
+                if let label = child.label?.lowercased() {
+                    if label.contains("level"){
+                        // prefer Int -> "Lv N"
+                        if let n = child.value as? Int {
+                            return "Lv.\(n)"
+                        }
+                        if let s = child.value as? String {
+                            // if it's already like "12" or "A", return as-is or prefix with Lv if numeric
+                            if let asInt = Int(s) {
+                                return "Lv.\(asInt)"
+                            }
+                            return s
+                        }
+                    }
+                }
+            }
+            // fallback: sometimes sheet may expose level as a nested metadata dict
+            if let metaMirrorChildren = Mirror(reflecting: entry.sheet).children.compactMap({ $0 }) as? [Mirror.Child] {
+                // no-op placeholder, primarily kept to indicate other heuristics could be added
+                _ = metaMirrorChildren
+            }
+            return nil
         }
 
         // MARK: - selection helpers

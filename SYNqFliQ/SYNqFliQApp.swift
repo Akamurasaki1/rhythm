@@ -1,7 +1,17 @@
 import SwiftUI
+import FirebaseCore
 
 @main
 struct SYNqFliQApp: App {
+    init() {
+        // Firebase デバッグログを有効化（リリース時は元に戻す）
+        FirebaseConfiguration.shared.setLoggerLevel(.debug)
+
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+            print("DBG: Firebase configured")
+        }
+    }
     enum AppState { case title, songSelect, playing, tutorial }
 
     @StateObject private var appModel = AppModel()

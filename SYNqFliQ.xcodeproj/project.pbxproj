@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9C59C7F52ED2D51500FBABC3 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9C59C7F42ED2D51500FBABC3 /* FirebaseAuth */; };
+		9C59C7F72ED2D51500FBABC3 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9C59C7F62ED2D51500FBABC3 /* FirebaseCore */; };
+		9C59C7F92ED2D51500FBABC3 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 9C59C7F82ED2D51500FBABC3 /* FirebaseFirestore */; };
+		9C59C7FF2ED2E52B00FBABC3 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 9C59C7FE2ED2E52B00FBABC3 /* FirebaseStorage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		9C0B8E782EC880DC000337A1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -30,6 +37,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9C59C8092ED56CDF00FBABC3 /* Exceptions for "SYNqFliQ" folder in "SYNqFliQ" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 9C0B8E692EC880DA000337A1 /* SYNqFliQ */;
+		};
 		9C9486312EC88C3D005CE7CD /* Exceptions for "SYNqFliQTests" folder in "SYNqFliQTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -42,6 +56,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9C0B8E6C2EC880DA000337A1 /* SYNqFliQ */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9C59C8092ED56CDF00FBABC3 /* Exceptions for "SYNqFliQ" folder in "SYNqFliQ" target */,
+			);
 			path = SYNqFliQ;
 			sourceTree = "<group>";
 		};
@@ -70,6 +87,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9C59C7F72ED2D51500FBABC3 /* FirebaseCore in Frameworks */,
+				9C59C7FF2ED2E52B00FBABC3 /* FirebaseStorage in Frameworks */,
+				9C59C7F52ED2D51500FBABC3 /* FirebaseAuth in Frameworks */,
+				9C59C7F92ED2D51500FBABC3 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,7 +121,15 @@
 				9C6CCC042EC88A7500CDB08F /* SYNqFliQ.app */,
 				9C6CCC052EC88A7500CDB08F /* SYNqFliQTests.xctest */,
 				9C6CCC062EC88A7500CDB08F /* SYNqFliQUITests.xctest */,
+				9C59C7FA2ED2D57C00FBABC3 /* Frameworks */,
 			);
+			sourceTree = "<group>";
+		};
+		9C59C7FA2ED2D57C00FBABC3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -124,6 +153,10 @@
 			);
 			name = SYNqFliQ;
 			packageProductDependencies = (
+				9C59C7F42ED2D51500FBABC3 /* FirebaseAuth */,
+				9C59C7F62ED2D51500FBABC3 /* FirebaseCore */,
+				9C59C7F82ED2D51500FBABC3 /* FirebaseFirestore */,
+				9C59C7FE2ED2E52B00FBABC3 /* FirebaseStorage */,
 			);
 			productName = rhythm;
 			productReference = 9C6CCC042EC88A7500CDB08F /* SYNqFliQ.app */;
@@ -207,6 +240,9 @@
 			);
 			mainGroup = 9C0B8E612EC880DA000337A1;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9C59C7F32ED2D3E100FBABC3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9C0B8E612EC880DA000337A1;
 			projectDirPath = "";
@@ -396,6 +432,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -412,6 +449,7 @@
 				DEVELOPMENT_TEAM = KYYURCTQW9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SYNqFliQ/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -424,7 +462,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Akamurasaki.rhythm;
+				PRODUCT_BUNDLE_IDENTIFIER = com.akamurasaki.synqfliq;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -446,6 +484,7 @@
 				DEVELOPMENT_TEAM = KYYURCTQW9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SYNqFliQ/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -458,7 +497,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Akamurasaki.rhythm;
+				PRODUCT_BUNDLE_IDENTIFIER = com.akamurasaki.synqfliq;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -594,6 +633,40 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9C59C7F32ED2D3E100FBABC3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9C59C7F42ED2D51500FBABC3 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9C59C7F32ED2D3E100FBABC3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		9C59C7F62ED2D51500FBABC3 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9C59C7F32ED2D3E100FBABC3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		9C59C7F82ED2D51500FBABC3 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9C59C7F32ED2D3E100FBABC3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		9C59C7FE2ED2E52B00FBABC3 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9C59C7F32ED2D3E100FBABC3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9C0B8E622EC880DA000337A1 /* Project object */;
 }

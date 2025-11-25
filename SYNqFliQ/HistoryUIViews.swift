@@ -71,6 +71,12 @@ public struct PlayRecordDetailView: View {
     }
 
     public var body: some View {
+        VStack(spacing: 8) {
+            Text("This is HistoryUIView")
+                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
+        }
         NavigationView {
             VStack(spacing: 16) {
                 Text(record.sheetTitle ?? "Unknown")
@@ -121,6 +127,7 @@ public struct PlayRecordDetailView: View {
 
 // Simple list view for history (used when opening history as a list)
 public struct HistoryListView: View {
+    
     public let records: [PlayRecord]
     public var onSelect: ((PlayRecord) -> Void)? = nil
     @Environment(\.presentationMode) private var presentationMode
@@ -131,6 +138,12 @@ public struct HistoryListView: View {
     }
 
     public var body: some View {
+        VStack(spacing: 8) {
+            Text("This is HistoryListView")
+                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
+        }
         NavigationView {
             List(records) { r in
                 HStack {

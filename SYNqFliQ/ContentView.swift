@@ -21,11 +21,6 @@ import AVFoundation
 import AVKit
 import UniformTypeIdentifiers
 
-// MARK: - Play history model & storage
-
-
-
-// MARK: - Thumbnail button (file-scope)
 
 // MARK: - ContentView
 
@@ -152,6 +147,12 @@ struct ContentView: View {
         Binding(get: { settings.holdFinishTrimThreshold },
                 set: { settings.holdFinishTrimThreshold = $0 })
     }
+    // ContentView の中に追加
+    private func playCountForSelectedSheet() -> Int {
+        guard let selFilename = appModel.selectedSheetFilename else { return 0 }
+        let all = PlayHistoryStorage.load()
+        return all.filter { $0.sheetFilename == selFilename }.count
+    }
 
     // Helpers for CGFloat conversions where needed
     private func cg(_ value: Double) -> CGFloat { CGFloat(value) }
@@ -192,6 +193,27 @@ struct ContentView: View {
         showJudgementUntil = nil
         // clear history selection state if you want:
         selectedRecord = nil
+    }
+    // ContentView.swift の struct のプロパティ群の近くに追加
+    @State private var showRecorderNotInstalledAlert = false
+    // ContentView.swift の struct のメソッド領域（body の外）に追加
+    private func openRecorderApp() {
+        // ここを Recorder が登録しているスキームに合わせる（例: synqfliq-recorder）
+        let scheme = "synqfliq-recorder"
+        guard let url = URL(string: "\(scheme)://") else { return }
+
+        if UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        } else {
+            // インストールされていない場合は App Store に誘導するかアラートを表示
+            // ここでは簡易にアラートフラグを立てています。App Store に飛ばすなら下の comment を使ってください。
+            showRecorderNotInstalledAlert = true
+
+            // App Store に直接飛ばす例（App Store の実際の ID に置き換えてください）
+            // if let appStoreURL = URL(string: "https://apps.apple.com/app/idYOUR_APPSTORE_ID") {
+            //     UIApplication.shared.open(appStoreURL, options: [:], completionHandler: nil)
+            // }
+        }
     }
     private func handleImportedFile(url: URL) {
         DispatchQueue.global(qos: .userInitiated).async {
@@ -344,7 +366,12 @@ struct ContentView: View {
     }
     // temporarily replace var body: some View { ... } with this minimal body
     var body: some View {
-        
+        VStack(spacing: 8) {
+            Text("This is ContentView")
+                .font(.system(size: 48, weight: .heavy, design: .rounded))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
+        }
         GeometryReader { geo in
             ZStack {
                 TouchOverlay(
@@ -480,22 +507,6 @@ struct ContentView: View {
                     .padding(.horizontal)
                     .padding(.top, 8)
 
-                    // History-only carousel (replaces previous selection carousel)
-                    HStack(alignment: .center) {
-                        Text("Songs:")
-                            .foregroundColor(.white)
-                            .padding(.leading, 10)
-                        if !isPlaying {
-                            historyCarouselView(width: geo.size.width)
-                                .frame(height: 160)
-                                .padding(.trailing, 8)
-                        } else {
-                            Spacer().frame(height: 8)
-                        }
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 6)
 
                     // Tuning UI (hidden while playing)
                     if !isPlaying {
@@ -578,8 +589,7 @@ struct ContentView: View {
                         }
                         Spacer()
                         Button(action: {
-                            // open editor (sheet)
-                            // show an editor sheet - placeholder hook
+                            openRecorderApp()
                         }) {
                             Text("Editor")
                                 .font(.subheadline)
@@ -587,6 +597,18 @@ struct ContentView: View {
                                 .background(Color.blue.opacity(0.85))
                                 .foregroundColor(.white)
                                 .cornerRadius(6)
+                        }
+                        .alert(isPresented: $showRecorderNotInstalledAlert) {
+                            Alert(
+                                title: Text("Recorder アプリが見つかりません"),
+                                message: Text("SYNqFliQRecorder が端末にインストールされていません。App Store で開きますか？"),
+                                primaryButton: .default(Text("App Storeへ"), action: {
+                                    if let appStoreURL = URL(string: "https://apps.apple.com/app/idYOUR_APPSTORE_ID") {
+                                        UIApplication.shared.open(appStoreURL, options: [:], completionHandler: nil)
+                                    }
+                                }),
+                                secondaryButton: .cancel()
+                            )
                         }
                         Spacer()
                         Text("Export").font(.subheadline).padding(8).background(Color.purple.opacity(0.85)).foregroundColor(.white).cornerRadius(6)
@@ -641,10 +663,48 @@ struct ContentView: View {
                             })
                         }
                     }
+                    // 新: ContentView のどこか（下部ボタン群の modifier chain）
+                    // compute playCount for the currently selected sheet
+
                     .sheet(isPresented: $isShowingResults) {
-                        ResultsView(score: score, maxCombo: maxCombo, perfect: perfectCount, good: goodCount, ok: okCount, miss: missCount, cumulativeCombo: cumulativeCombo, playMaxHistory: playMaxHistory, consecutiveCombo: consecutiveCombo)
+                        ResultsView(
+                            score: score,
+                            maxCombo: maxCombo,
+                            perfect: perfectCount,
+                            good: goodCount,
+                            ok: okCount,
+                            miss: missCount,
+                            cumulativeCombo: cumulativeCombo,
+                            playMaxHistory: playMaxHistory,
+                            consecutiveCombo: consecutiveCombo,
+                            playCount: playCountForSelectedSheet(),
+                            onPlayAgain: {
+                                if !isPlaying {
+                                    if let sel = appModel.selectedSheet {
+                                        sheetNotesToPlay = sel.notes
+                                        notesToPlay = sel.notes.asNotes()
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                            startPlayback(in: UIScreen.main.bounds.size)
+                                        }
+                                    }
+                                }
+                            },
+                            onBackToSelection: {
+                                appModel.openSongSelection()
+                            },
+                            onSave: {
+                                appendPlayHistoryRecord()
+                            },
+                            onShare: { items in
+                                // present UIActivityViewController from root
+                                guard let wnd = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first?.windows.first,
+                                      let root = wnd.rootViewController else { return }
+                                let ac = UIActivityViewController(activityItems: items, applicationActivities: nil)
+                                root.present(ac, animated: true)
+                            }
+                        )
                     }
-                    .sheet(isPresented: $isShowingShare) {
+                .sheet(isPresented: $isShowingShare) {
                         if let url = shareURL {
                             ShareSheet(activityItems: [url])
                         } else {
@@ -657,10 +717,19 @@ struct ContentView: View {
                             Text("Selected: \(appModel.selectedSheet?.title ?? "—")")
                                 .foregroundColor(.white)
                             Spacer()
+                            Text("Difficulty: \(appModel.selectedSheet?.difficulty ?? "-"):\(appModel.selectedSheet?.level.map { String($0) } ?? "-")")
+                                .foregroundColor(.white)
                         }
                         .padding(.bottom, 20)
                     } else {
-                        Spacer().frame(height: 20)
+                        HStack {
+                            Text("  \(appModel.selectedSheet?.title ?? "—")")
+                                .foregroundColor(.white)
+                            Spacer()
+                            Text("\(appModel.selectedSheet?.difficulty ?? "-"):\(appModel.selectedSheet?.level.map { String($0) } ?? "-")")
+                                .foregroundColor(.white)
+                        }
+                        .padding(.bottom, 20)
                     }
                 }
             } // ZStack
@@ -800,16 +869,7 @@ struct ContentView: View {
         return entries
     }
 
-    // Replace your existing historyCarouselView with this exact function body.
-    @ViewBuilder
-    private func historyCarouselView(width: CGFloat) -> some View {
-        let entries = historyEntriesForCarousel()
-        HStack {
-            ForEach(0..<max(1, entries.count), id: \.self) { i in
-                Text("i=\(i)").foregroundColor(.white).frame(width: 120, height: 120).background(Color.gray)
-            }
-        }
-    }
+
     @ViewBuilder
 
     // Returns AnyView to keep the concrete return type stable across branches.
@@ -1915,7 +1975,7 @@ struct ContentView: View {
 
 // Replace your ResultsView (or the small results sheet view) with this version.
 // Place this inside the same file scope where ResultsView is currently defined.
-
+/*
 struct ResultsView: View {
     let score: Int
     let maxCombo: Int
@@ -1959,7 +2019,7 @@ struct ResultsView: View {
         }
         .padding()
     }
-}
+} */
 // MARK: - Basic shapes
 
 struct RodView: View {
