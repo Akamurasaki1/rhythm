@@ -1,0 +1,25 @@
+
+{
+    "version": 1,
+    "title": "neo tinnitus",
+    "chapter":"LeaF",
+    "difficulty": "Core",
+    "level": 12,
+    "id": "12",
+    "bpm": 177.0,
+    "audioFilename": "neo_tinnitus.wav",
+    "notes": [
+        {
+          "id" : "12-0001",
+          "angleDegrees" : 0,
+          "normalizedPosition" : {
+            "x" : 0.6958272327964861,
+            "y" : 0.38666666666666666
+          },
+          "holdEndTime" : 2.821284952,
+          "time" : 2.533526625,
+          "noteType" : "hold"
+        }
+    ]
+}
+

@@ -60,70 +60,6 @@ public struct HistoryThumbnailButton: View {
 }
 
 // Detail modal for a PlayRecord
-public struct PlayRecordDetailView: View {
-    public let record: PlayRecord
-    public var onPreview: ((PlayRecord) -> Void)? = nil
-    @Environment(\.presentationMode) private var presentationMode
-
-    public init(record: PlayRecord, onPreview: ((PlayRecord) -> Void)? = nil) {
-        self.record = record
-        self.onPreview = onPreview
-    }
-
-    public var body: some View {
-        VStack(spacing: 8) {
-            Text("This is HistoryUIView")
-                .font(.system(size: 48, weight: .heavy, design: .rounded))
-                .foregroundColor(.white)
-                .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
-        }
-        NavigationView {
-            VStack(spacing: 16) {
-                Text(record.sheetTitle ?? "Unknown")
-                    .font(.title2)
-                    .bold()
-                Text(record.date, style: .date)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                HStack(spacing: 12) {
-                    VStack { Text("Score"); Text("\(record.score)") }
-                    VStack { Text("Max Combo"); Text("\(record.maxCombo)") }
-                    VStack { Text("Perfect"); Text("\(record.perfectCount)") }
-                }
-                .font(.headline)
-                .padding()
-
-                Spacer()
-
-                HStack {
-                    Button("Close") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                    .padding()
-                    .background(Color.gray.opacity(0.15))
-                    .cornerRadius(8)
-
-                    Spacer()
-
-                    Button(action: {
-                        onPreview?(record)
-                    }) {
-                        Text("Preview")
-                            .bold()
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                }
-                .padding(.horizontal)
-            }
-            .padding()
-            .navigationBarTitle("Play Detail", displayMode: .inline)
-        }
-    }
-}
 
 // Simple list view for history (used when opening history as a list)
 public struct HistoryListView: View {
@@ -164,3 +100,4 @@ public struct HistoryListView: View {
         }
     }
 }
+

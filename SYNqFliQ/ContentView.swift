@@ -643,7 +643,7 @@ struct ContentView: View {
                         Spacer()
                     }
                     .padding(.bottom, 12)
-                    .sheet(isPresented: $isShowingRecordDetail) {
+                  /*  .sheet(isPresented: $isShowingRecordDetail) {
                         if let rec = selectedRecord {
                             PlayRecordDetailView(record: rec, onPreview: { record in
                                 if let fn = record.sheetFilename,
@@ -662,7 +662,7 @@ struct ContentView: View {
                                 isShowingRecordDetail = true
                             })
                         }
-                    }
+                    }*/
                     // 新: ContentView のどこか（下部ボタン群の modifier chain）
                     // compute playCount for the currently selected sheet
 
@@ -693,7 +693,7 @@ struct ContentView: View {
                                 appModel.openSongSelection()
                             },
                             onSave: {
-                                appendPlayHistoryRecord()
+                             //   appendPlayHistoryRecord() これ入れるとsaveボタン押すたびにプレイ回数が増えてしまう
                             },
                             onShare: { items in
                                 // present UIActivityViewController from root

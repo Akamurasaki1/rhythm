@@ -1,0 +1,21 @@
+
+{
+    "version": 1,
+    "title": "NOTITLE...yet",
+    "chapter":"Akamurasaki",
+    "difficulty": "Base",
+    "level": 12,
+    "id": "12",
+    "bpm": 280.0,
+    "audioFilename": "NOTITLE___yet.wav",
+    "backgroundFilename":"NOTITLE___yet_bokasi.mp4",
+    "notes": [
+        {
+            "id": "12-0001",
+            "time": 0.4,
+            "angleDegrees": -10.0,
+            "normalizedPosition": { "x": 0.45, "y": 0.35 }
+        }
+    ]
+    
+}

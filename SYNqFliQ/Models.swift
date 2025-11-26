@@ -40,6 +40,7 @@ public struct SheetNote: Codable, Equatable {
 /// Bundle / file から読み込む Sheet の定義
 public struct Sheet: Codable, Equatable {
     public var version: Int?
+    public var chapter: String?
     public var title: String
     public var difficulty: String?
     public var level: Int?

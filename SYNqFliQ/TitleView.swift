@@ -8,14 +8,14 @@ import SwiftUI
 import FirebaseAuth
 
 struct TitleView: View {
-    // Called when the user presses Start
     var onStart: (() -> Void)?
     
     // Optional callbacks
     var onOpenSettings: (() -> Void)? = nil
     var onShowCredits: (() -> Void)? = nil
     var onShowTutorial: (() -> Void)? = nil
-    
+    var onShowHistories: (() -> Void)? = nil
+    var onShowChapters: (() -> Void)? = nil
     // Local visual state
     @State private var showSubtitle = false
     @State private var logoScale: CGFloat = 1.0
@@ -131,33 +131,87 @@ struct TitleView: View {
                 .padding(.top, 24)
                 
                 Spacer()
-                
-                // Start ボタン（中央に大きく）
-                Button(action: {
-                    // 簡単なタップアニメーション
-                    withAnimation(.easeOut(duration: 0.12)) {
-                        logoScale = 0.96
+                HStack(){
+                // 例: TitleView のボタン行に追加
+                Button(action: { withAnimation { onShowChapters?() } }) {
+                    VStack {
+                        Image(systemName: "books.vertical.fill").font(.system(size: 24))
+                        Text("Chapters").font(.headline)
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                        withAnimation(.spring()) {
-                            logoScale = 1.0
-                        }
-                        // 呼び出し側へ通知してメイン画面へ遷移
-                        onStart?()
-                    }
-                }) {
-                    Text("Start")
-                        .font(.title2)
-                        .bold()
-                        .frame(minWidth: 200, minHeight: 48)
-                        .background(LinearGradient(gradient: Gradient(colors: [Color.green, Color.blue]), startPoint: .leading, endPoint: .trailing))
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .shadow(radius: 6)
+                    .frame(minWidth: 200, minHeight: 72)
+                    .background(LinearGradient(gradient: Gradient(colors: [Color.red, Color.blue]), startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                    .shadow(radius: 6)
                 }
+            }
+                            // Main action row: large Start / History
+                            HStack(spacing: 16) {
+                                // Start button with tap animation
+                                Button(action: {
+                                    // simple tap animation before invoking callback
+                                    withAnimation(.easeOut(duration: 0.12)) { logoScale = 0.96 }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                                        withAnimation(.spring()) { logoScale = 1.0 }
+                                        // call after animation
+                                        DispatchQueue.main.async {
+                                            onStart?()
+                                        }
+                                    }
+                                }) {
+                                    VStack {
+                                        Image(systemName: "play.fill")
+                                            .font(.system(size: 28))
+                                        Text("Start")
+                                            .font(.title3).bold()
+                                    }
+                                    .frame(minWidth: 150, minHeight: 84)
+                                .background(LinearGradient(gradient: Gradient(colors: [Color.green, Color.blue]), startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                                    .shadow(radius: 6)
+                                }
+
+                            // History button with same tap animation pattern
+                                Button(action: {
+                                    withAnimation(.easeOut(duration: 0.12)) { logoScale = 0.96 }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                                        withAnimation(.spring()) { logoScale = 1.0 }
+                                        DispatchQueue.main.async {
+                                            onShowHistories?()
+                                        }
+                                    }
+                                }) {
+                                    VStack {
+                                        Image(systemName: "clock.fill")
+                                            .font(.system(size: 28))
+                                        Text("History")
+                                            .font(.title3).bold()
+                                    }
+                                    .frame(minWidth: 150, minHeight: 84)
+                                    .background(Color.gray.opacity(0.16))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                                    .shadow(radius: 4)
+                                }
+                            }
+                            .padding(.horizontal)
+
+
                 
                 // 小さめのボタン群
                 HStack(spacing: 12) {
+                    // History button (new)
+               /*     Button(action: { onShowHistories?() }) {
+                        Text("History")
+                            .font(.subheadline)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 10)
+                            .background(Color.gray.opacity(0.2))
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    }
+                    Spacer() */
                     Button(action: {
                         onOpenSettings?()
                     }) {

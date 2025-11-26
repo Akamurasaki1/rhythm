@@ -37,10 +37,37 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9C59C8092ED56CDF00FBABC3 /* Exceptions for "SYNqFliQ" folder in "SYNqFliQ" target */ = {
+		9C59C8A72ED6FAC500FBABC3 /* Exceptions for "SYNqFliQ" folder in "SYNqFliQ" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				ActiveNoteModel.swift,
+				ActiveNoteView.swift,
+				AppModel.swift,
+				Assets.xcassets,
+				ChapterSelectionView.swift,
+				ContentView.swift,
+				"GoogleService-Info.plist",
+				HistoryScreen.swift,
+				HistoryUIViews.swift,
+				Models.swift,
+				Models/FirebaseModels.swift,
+				PlayHistory.swift,
+				ResultsView.swift,
+				Services/Auth/AccountSettingsView.swift,
+				Services/Auth/AuthManager.swift,
+				Services/Auth/ImagePicker.swift,
+				Services/Auth/SignInView.swift,
+				Services/Firestore/FirestoreManager.swift,
+				SettingsStore.swift,
+				SettingsView.swift,
+				ShareSheet.swift,
+				SheetEditorView.swift,
+				SongSelectionView.swift,
+				SYNqFliQApp.swift,
+				TitleView.swift,
+				TouchOverlay.swift,
+				TutorialView.swift,
+				Utilities/FirebaseSetup.swift,
 			);
 			target = 9C0B8E692EC880DA000337A1 /* SYNqFliQ */;
 		};
@@ -54,14 +81,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9C0B8E6C2EC880DA000337A1 /* SYNqFliQ */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9C59C8092ED56CDF00FBABC3 /* Exceptions for "SYNqFliQ" folder in "SYNqFliQ" target */,
-			);
-			path = SYNqFliQ;
-			sourceTree = "<group>";
-		};
 		9C0B8E7A2EC880DC000337A1 /* SYNqFliQTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -78,6 +97,14 @@
 		9C0B8EA12EC887EF000337A1 /* Resources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		9C59C8A12ED6FA5800FBABC3 /* SYNqFliQ */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9C59C8A72ED6FAC500FBABC3 /* Exceptions for "SYNqFliQ" folder in "SYNqFliQ" target */,
+			);
+			path = SYNqFliQ;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -114,7 +141,7 @@
 		9C0B8E612EC880DA000337A1 = {
 			isa = PBXGroup;
 			children = (
-				9C0B8E6C2EC880DA000337A1 /* SYNqFliQ */,
+				9C59C8A12ED6FA5800FBABC3 /* SYNqFliQ */,
 				9C0B8E7A2EC880DC000337A1 /* SYNqFliQTests */,
 				9C0B8E842EC880DC000337A1 /* SYNqFliQUITests */,
 				9C0B8EA12EC887EF000337A1 /* Resources */,
@@ -148,7 +175,6 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9C0B8E6C2EC880DA000337A1 /* SYNqFliQ */,
 				9C0B8EA12EC887EF000337A1 /* Resources */,
 			);
 			name = SYNqFliQ;

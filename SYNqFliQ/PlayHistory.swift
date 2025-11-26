@@ -23,6 +23,8 @@ public struct PlayRecord: Codable, Identifiable, Equatable {
     public let goodCount: Int
     public let okCount: Int
     public let missCount: Int
+    public let difficulty: String?
+    public let level: Int?
 
     public init(date: Date = Date(),
                 sheetFilename: String?,
@@ -32,7 +34,9 @@ public struct PlayRecord: Codable, Identifiable, Equatable {
                 perfectCount: Int,
                 goodCount: Int,
                 okCount: Int,
-                missCount: Int) {
+                missCount: Int,
+                difficulty: String? = nil,
+                level: Int? = nil) {
         self.id = UUID()
         self.date = date
         self.sheetFilename = sheetFilename
@@ -43,6 +47,8 @@ public struct PlayRecord: Codable, Identifiable, Equatable {
         self.goodCount = goodCount
         self.okCount = okCount
         self.missCount = missCount
+        self.difficulty=difficulty
+        self.level=level
     }
 }
 

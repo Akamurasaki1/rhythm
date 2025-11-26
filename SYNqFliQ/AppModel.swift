@@ -35,6 +35,8 @@ final class AppModel: ObservableObject {
 
     @Published var selectedSheetFilename: String? = nil
     @Published var selectedDifficulty: String? = nil
+    // AppModel.swift の class AppModel: ObservableObject { ... } の中
+    @Published var selectedChapter: String? = nil
 
     var selectedSheet: Sheet? {
         guard let fn = selectedSheetFilename else { return nil }

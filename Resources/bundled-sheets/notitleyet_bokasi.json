@@ -1,0 +1,21 @@
+
+{
+    "version": 1,
+    "title": "NOTITLE...yet",
+    "chapter":"Akamurasaki",
+    "difficulty": "Flow",
+    "level": 12,
+    "id": "12",
+    "bpm": 280.0,
+    "audioFilename": "NOTITLE___yet.wav",
+    "backgroundFilename":"NOTITLE___yet.mov",
+    "notes": [
+        {
+            "id": "12-0001",
+            "time": 0.4,
+            "angleDegrees": -10.0,
+            "normalizedPosition": { "x": 0.45, "y": 0.35 }
+        }
+    ]
+    
+}
