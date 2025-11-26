@@ -17,12 +17,12 @@ struct ActiveNoteView: View {
     var onFlick: ((DragGesture.Value) -> Void)? = nil
 
     var body: some View {
-        VStack(spacing: 8) {
+      /*  VStack(spacing: 8) {
             Text("This is ActiveNoteView")
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
-        }
+        } */
         // precompute frequently-used values to simplify the view code
         let pos: CGPoint = (note.position == .zero) ? note.targetPosition : note.position
         let pos2: CGPoint = (note.position2 == nil || note.position2 == .zero) ? note.targetPosition : (note.position2 ?? note.targetPosition)
