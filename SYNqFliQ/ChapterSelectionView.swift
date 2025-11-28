@@ -142,7 +142,7 @@ public struct ChapterSelectionView: View {
                 .background(Color(UIColor.systemBackground))
                 .zIndex(1) // ensure header sits visually above the cards if overlapping
                 VStack{
-                    carouselView(size: CGSize(width: geo.size.width*0.8, height: geo.size.height))
+                    carouselView(size: CGSize(width: geo.size.width*0.9, height: geo.size.height))
 
                     
                     // focus details (optional) - keep as you had them

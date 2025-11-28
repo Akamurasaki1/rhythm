@@ -130,12 +130,12 @@ public struct PlayRecordDetailView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 8) {
+     /*   VStack(spacing: 8) {
             Text("This is HistoryUIView")
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
-        }
+        } */
         NavigationView {
             VStack(spacing: 16) {
                 Text(record.sheetTitle ?? "Unknown")

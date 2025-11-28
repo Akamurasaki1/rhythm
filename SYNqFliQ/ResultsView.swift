@@ -24,18 +24,22 @@ public struct ResultsView: View {
     let consecutiveCombo: Int
     // NEW: play count for the current sheet
     let playCount: Int
-
+//    var scorepoint:Int
+   // var HighScore:Int
+    
     // Optional callbacks (ContentView can provide handlers)
     var onPlayAgain: (() -> Void)? = nil
     var onBackToSelection: (() -> Void)? = nil
     var onSave: (() -> Void)? = nil
     /// onShare receives prepared activity items. If nil, this view presents a default share sheet with text.
     var onShare: ((_ items: [Any]) -> Void)? = nil
-
+    
     @Environment(\.dismiss) private var dismiss
     @State private var isSharing: Bool = false
-
+    
     public init(score: Int,
+          //      scorepoint:Int,
+            //    HeighScore:Int,
                 maxCombo: Int,
                 perfect: Int,
                 good: Int,
@@ -50,6 +54,8 @@ public struct ResultsView: View {
                 onSave: (() -> Void)? = nil,
                 onShare: ((_ items: [Any]) -> Void)? = nil) {
         self.score = score
+   //     self.scorepoint = scorepoint
+            //       self.HighScore = HeighScore
         self.maxCombo = maxCombo
         self.perfect = perfect
         self.good = good
@@ -64,13 +70,16 @@ public struct ResultsView: View {
         self.onSave = onSave
         self.onShare = onShare
     }
-
+    
     // derived
-    private var totalHits: Int { perfect + good + ok + miss }
-    private var perfectPct: Double { totalHits == 0 ? 0 : Double(perfect) / Double(totalHits) }
-    private var goodPct: Double { totalHits == 0 ? 0 : Double(good) / Double(totalHits) }
-    private var okPct: Double { totalHits == 0 ? 0 : Double(ok) / Double(totalHits) }
-    private var missPct: Double { totalHits == 0 ? 0 : Double(miss) / Double(totalHits) }
+    private var totalNotes: Int { perfect + good + ok + miss }
+    private var Theoretical_optimum: Int{totalNotes*Int(3.5)} // 全部Perfect+コンボ数/2
+    private var scorepoints:Int{(score+maxCombo/2)*100000000/Theoretical_optimum}
+    private var perfectPct: Double { totalNotes == 0 ? 0 : Double(perfect) / Double(totalNotes) }
+    private var goodPct: Double { totalNotes == 0 ? 0 : Double(good) / Double(totalNotes) }
+    private var okPct: Double { totalNotes == 0 ? 0 : Double(ok) / Double(totalNotes) }
+    private var missPct: Double { totalNotes == 0 ? 0 : Double(miss) / Double(totalNotes) }
+    
     // ランク
     private func ScoreMedalName() -> String {
         if perfectPct > 0.9 && miss == 0 { return "SS" }
@@ -85,25 +94,40 @@ public struct ResultsView: View {
         else if miss == 0 { return "FC" }
         return "-"
     }
-
-
+    
+    
     public var body: some View {
-        VStack(spacing: 8) {
-            Text("This is ResultsView")
-                .font(.system(size: 48, weight: .heavy, design: .rounded))
-                .foregroundColor(.white)
-                .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
-        }
+        /*   VStack(spacing: 8) {
+         Text("This is ResultsView")
+         .font(.system(size: 48, weight: .heavy, design: .rounded))
+         .foregroundColor(.white)
+         .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
+         } */
         NavigationView {
             VStack(spacing: 16) {
                 // Header
                 HStack(alignment: .center) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("プレイ結果").font(.title2).foregroundColor(.secondary)
-                        Text("\(score)")
+                        Text("\(scorepoints)")
                             .font(.system(size: 44, weight: .heavy, design: .rounded))
-                            .foregroundColor(.white)
+                            .foregroundColor(.clear) // mask と overlay の重なりを正しくするためにクリアにしておく
+                            .overlay(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.red, Color.blue]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .mask(
+                                Text("\(scorepoints)")
+                                    .font(.largeTitle).bold()
+                            )
                             .shadow(radius: 6)
+                        Text("(\(score))")
+                            .font(.system(size: 18, design: .rounded))
+                            .foregroundColor(.white)
+                            .shadow(radius: 3)
                     }
                     Spacer()
                     VStack {
@@ -114,7 +138,7 @@ public struct ResultsView: View {
                             .foregroundColor(ScoreMedalColor())
                             .clipShape(Circle())
                             .overlay(Circle().stroke(ScoreMedalColor().opacity(0.35), lineWidth: 3))
-                        Text(rankSubtitle()).font(.caption).foregroundColor(.secondary)
+                    //    Text(rankSubtitle()).font(.caption).foregroundColor(.secondary)
                     }
                     Spacer()
                     VStack {
@@ -142,7 +166,7 @@ public struct ResultsView: View {
                     }
                 }
                 .padding(.horizontal)
-
+                
                 // Stats + distribution
                 HStack(spacing: 14) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -153,7 +177,7 @@ public struct ResultsView: View {
                         statRow(title: "MISS", value: "\(miss)")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-
+                    
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Hit distribution").font(.caption).foregroundColor(.secondary)
                         distributionBar()
@@ -163,8 +187,8 @@ public struct ResultsView: View {
                         Spacer()
                         HStack {
                             VStack(alignment: .leading) {
-                                Text("Total Hits").font(.caption).foregroundColor(.secondary)
-                                Text("\(totalHits)").bold()
+                                Text("Total Notes").font(.caption).foregroundColor(.secondary)
+                                Text("\(totalNotes)").bold()
                             }
                             Spacer()
                         }
@@ -172,9 +196,9 @@ public struct ResultsView: View {
                     .frame(maxWidth: 200)
                 }
                 .padding(.horizontal)
-
+                
                 Divider().background(Color.white.opacity(0.05))
-
+                
                 // Additional stats
                 VStack(spacing: 8) {
                     HStack {
@@ -196,9 +220,9 @@ public struct ResultsView: View {
                     }
                 }
                 .padding(.horizontal)
-
+                
                 Spacer()
-
+                
                 // Actions: Play Again / Back / Save / Share / Close (minimal + extended)
                 VStack(spacing: 10) {
                     HStack(spacing: 10) {
@@ -216,7 +240,7 @@ public struct ResultsView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
-
+                        
                         Button(action: {
                             dismiss()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
@@ -230,7 +254,7 @@ public struct ResultsView: View {
                                 .cornerRadius(8)
                         }
                     }
-
+                    
                     HStack(spacing: 10) {
                         Button(action: { onSave?() }) {
                             HStack {
@@ -242,7 +266,7 @@ public struct ResultsView: View {
                             .background(Color.secondary.opacity(0.12))
                             .cornerRadius(8)
                         }
-
+                        
                         Button(action: {
                             let items: [Any] = [shareText()]
                             if let onShare = onShare {
@@ -263,7 +287,7 @@ public struct ResultsView: View {
                             .cornerRadius(8)
                         }
                     }
-
+                    
                     Button(action: { dismiss() }) {
                         Text("閉じる")
                             .bold()
@@ -284,7 +308,8 @@ public struct ResultsView: View {
                 ActivityViewController(activityItems: [shareText()])
             }
         }
-    }
+        }
+
 
     // MARK: - Helpers / subviews
 
@@ -370,6 +395,8 @@ fileprivate struct ActivityViewController: UIViewControllerRepresentable {
 struct ResultsView_Previews: PreviewProvider {
     static var previews: some View {
         ResultsView(score: 12345,
+                  //  scorepoint: 1111111111,
+                  //  HeighScore: 1112221111,
                     maxCombo: 120,
                     perfect: 200, good: 40, ok: 10, miss: 3,
                     cumulativeCombo: 1500,

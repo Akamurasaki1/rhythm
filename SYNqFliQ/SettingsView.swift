@@ -37,12 +37,12 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+     /*   VStack(spacing: 8) {
             Text("This is SettingsView")
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
-        }
+        }  */
         NavigationView {
             Form {
                 Section(header: Text("Approach (ノーツ出現 / 判定)")) {

@@ -54,7 +54,7 @@ struct ActiveNoteView: View {
                     .position(pos)
                     .zIndex(note.isClear ? 2 : 1)
                     .gesture(
-                        DragGesture(minimumDistance: 8)
+                        DragGesture(minimumDistance: 16)
                             .onEnded { value in
                                 onFlick?(value)
                             }

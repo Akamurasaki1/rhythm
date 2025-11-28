@@ -30,6 +30,8 @@ public struct CloudPlayRecord: Codable, Identifiable {
     public var sheetId: String?
     public var sheetTitle: String?
     public var score: Int
+    public var scorepoint: Int // 追加
+    public var HighScore: Int?
     public var maxCombo: Int
     public var perfect: Int
     public var good: Int
@@ -43,6 +45,8 @@ public struct CloudPlayRecord: Codable, Identifiable {
                 sheetId: String? = nil,
                 sheetTitle: String? = nil,
                 score: Int = 0,
+                scorepoint: Int = 0,
+                HighScore: Int? = nil,
                 maxCombo: Int = 0,
                 perfect: Int = 0,
                 good: Int = 0,
@@ -55,6 +59,8 @@ public struct CloudPlayRecord: Codable, Identifiable {
         self.sheetId = sheetId
         self.sheetTitle = sheetTitle
         self.score = score
+        self.scorepoint = scorepoint
+        self.HighScore = HighScore
         self.maxCombo = maxCombo
         self.perfect = perfect
         self.good = good

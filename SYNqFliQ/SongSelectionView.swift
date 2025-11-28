@@ -70,12 +70,12 @@ struct SongSelectionView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+     /*   VStack(spacing: 8) {
             Text("This is SongSelectionView")
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
-        }
+        }  */
         SongSelectView(songs: songs, onChoose: onChoose, onCancel: onClose)
     }
 
@@ -94,7 +94,64 @@ struct SongSelectionView: View {
         // carousel internal
         @State private var initialScrollPerformed: Bool = false
         @State private var selectedIndex: Int = 0
+        @State private var searchText: String = "" // 検索
+        private var filteredSongs: [BundledSheet] {
+            let qRaw = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !qRaw.isEmpty else { return appModel.bundledSheets }
 
+            let q = qRaw.lowercased()
+
+            return appModel.bundledSheets.filter { entry in
+                // adjust property names if your model differs:
+                let title = (entry.sheet.title).lowercased()
+              //  let artist = (entry.sheet.artist ?? "").lowercased()
+          //      let filename = entry.filename.lowercased()
+              //  let chapter = (entry.sheet.chapter).lowercased()
+             //   let difficulty = (entry.sheet.difficulty).lowercased()
+
+                // match by song title, artist, filename, chapter, difficulty
+                if title.contains(q) { return true }
+          //      if artist.contains(q) { return true }
+          //      if filename.contains(q) { return true }
+          //      if chapter.contains(q) { return true }
+          //      if difficulty.contains(q) { return true }
+
+                // Optionally: match by words inside title (split) for partial multi-word queries
+       //         let tokens = q.split(separator: " ").map { String($0) }
+       //         if !tokens.isEmpty {
+                    // require that all tokens appear somewhere (AND semantics)
+                //    let hay = (title + " " + artist + " " + filename)
+               //     if tokens.allSatisfy({ hay.contains($0) }) { return true }
+       //         }
+
+                return false
+            }
+        }
+        // Paste these inside SongSelectView (struct SongSelectView: View { ... })
+        // 1) filtered / visible mapping: searchText -> visible SongSummary array
+        private var visibleSongs: [SongSummary] {
+            let qRaw = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !qRaw.isEmpty else { return songs }
+
+            let q = qRaw.lowercased()
+            var results: [SongSummary] = []
+            for (idx, entry) in appModel.bundledSheets.enumerated() {
+                let title = (entry.sheet.title).lowercased()
+                // you can extend matching to artist/filename/etc if desired
+                if title.contains(q) {
+                    results.append(SongSummary(
+                        id: entry.filename,
+                        title: entry.sheet.title,
+                        thumbnailFilename: entry.sheet.thumbnailFilename,
+                        bundledIndex: idx
+                    ))
+                }
+            }
+            return results
+        }
+
+        // 2) Reset selection state when search text changes so indices align with visibleSongs
+        // Add this below your @State declarations (you may already have them) — this uses .onChange in the view body.
         // difficulty picker state (confirmationDialog)
         @EnvironmentObject private var appModel: AppModel
         @State private var showingDifficultyPicker: Bool = false
@@ -117,6 +174,7 @@ struct SongSelectionView: View {
         var body: some View {
             GeometryReader { geo in
                 ZStack {
+            // ensure header sits visually above the cards if overlapping
                     // Background: prefer asset named "selection_bg" (no extension).
                     // If the asset is missing, fall back to solid black.
                     Group {
@@ -181,8 +239,8 @@ struct SongSelectionView: View {
                     // (the rest of overlays like focused tile, controls, etc. remain as before)
                 
             
-                    if let fi = focusedIndex, songs.indices.contains(fi) {
-                        let song = songs[fi]
+                    if let fi = focusedIndex, visibleSongs.indices.contains(fi) {
+                        let song = visibleSongs[fi]
                         VStack(spacing: 16) {
                             let verticalShift: CGFloat = -min(geo.size.height * 0.06, 48) // move up by 6% of height, max 48pt
                             tileView(for: song)
@@ -239,6 +297,22 @@ struct SongSelectionView: View {
                                     .cornerRadius(8)
                             }
                             Spacer()
+                            HStack {
+                                TextField("Search songs", text: $searchText)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                                Button(action: { searchText = "" }) {
+                                    Image(systemName: "xmark.circle")
+                                }
+                                .opacity(searchText.isEmpty ? 0.5 :1.0)
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .padding(.horizontal)
+                            .padding(3)
+                            .opacity(0.5.advanced(by: 0.1))
+                            .border(Color.black.opacity(1.0), width: 1)
+                            .cornerRadius(8)
+                            
                         }
                         .padding()
                         Spacer()
@@ -277,13 +351,13 @@ struct SongSelectionView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .id("empty_placeholder")
             } else {
-                let entriesCount = songs.count
+                let entriesCount = visibleSongs.count
                 let initialIndex = max(0, entriesCount / 2)
 
                 ScrollViewReader { proxy in
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: carouselItemSpacing) {
-                            ForEach(songs.indices, id: \.self) { i in
+                            ForEach(visibleSongs.indices, id: \.self) { i in
                                 GeometryReader { itemGeo in
                                     let frame = itemGeo.frame(in: .global)
                                     let centerX = UIScreen.main.bounds.width / 2
@@ -293,7 +367,7 @@ struct SongSelectionView: View {
                                     let rotateDeg = -normalized * 30.0
                                     let scale = 1.0 - abs(normalized) * 0.25
                                     let opacity = 1.0 - abs(normalized) * 0.6
-                                    let song = songs[i]
+                                    let song = visibleSongs[i]
 
                                     VStack {
                                         ZStack {
