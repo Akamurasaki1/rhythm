@@ -18,7 +18,7 @@ struct SYNqFliQApp: App {
         }
     }
 
-    enum AppState { case title, songSelect, playing, tutorial, history,chapterSelect }
+    enum AppState { case title, songSelect, playing, tutorial, history,chapterSelect, credits }
 
     @StateObject private var appModel = AppModel()
     @StateObject private var settings = SettingsStore()
@@ -48,7 +48,7 @@ struct SYNqFliQApp: App {
                                 showingSettings = true
                             },
                             onShowCredits: {
-                                // handle credits
+                                DispatchQueue.main.async { withAnimation(.easeInOut) { appState = .credits } }
                             },
                             onShowTutorial: {
                                 DispatchQueue.main.async { withAnimation(.easeInOut) { appState = .tutorial } }
@@ -97,6 +97,10 @@ struct SYNqFliQApp: App {
                         // Replace your existing `case .chapterSelect:` block with this
                     case .chapterSelect:
                         chapterSelectionView()
+                    case .credits:
+                        CreditsView()
+                            .environmentObject(appModel)
+                            .environmentObject(settings)
                     }
                 }
             }
