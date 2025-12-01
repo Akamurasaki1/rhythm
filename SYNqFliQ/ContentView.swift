@@ -27,8 +27,35 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @EnvironmentObject private var appModel: AppModel
 
+    // Add this inside ContentView (struct)
+    // Replace your existing nearbyJudgementOverlays(geo:) implementation with this version.
+    // This version disables implicit animations for the position and removes transition/animation modifiers
+    // that caused the moving/stacking animation when nearbyJudgements are removed.
 
+    @ViewBuilder
+    private func nearbyJudgementOverlays(geo: GeometryProxy) -> some View {
+        if showJudgementNearNote {
+            ForEach(Array(nearbyJudgements.enumerated()), id: \.element.id) { idx, nj in
+                // compute a small staggered offset to reduce overlap
+                let stackIndex = idx % 3
+                let yOffset = CGFloat(stackIndex) * -18.0
+                NearbyJudgementView(j: nj)
+                    .position(x: min(max(8, nj.position.x), geo.size.width - 8),
+                              y: max(24, nj.position.y - 36 + yOffset))
+                    // Disable implicit animations for this view (prevents it from "sliding" when items are removed)
+                    .transaction { t in t.animation = nil }
+                    .zIndex(2)
+            }
+        }
+    }
+    // Add these inside ContentView (struct) near other @State properties.
 
+    @AppStorage("ui.showJudgementNearNote") private var showJudgementNearNote: Bool = false
+    // Holds transient nearby judgements to render on the canvas
+    @State private var nearbyJudgements: [NearbyJudgement] = []
+    // default nearby judgement display duration
+    @AppStorage("ui.judgementDisplayDuration") private var nearbyJudgementDuration: TimeInterval = 0.45
+    
     // MARK: State
     @State private var showingEditor: Bool = false
     @State private var bundledSheets: [(filename: String, sheet: Sheet)] = []
@@ -423,63 +450,6 @@ struct ContentView: View {
         print("[LP] handlePotentialLongPressEnd RETURN elapsed=\(elapsed)s")
     }
     
-    // 2) Add this helper inside ContentView (e.g., near other handlers) to bridge overlay -> existing handleFlick
-/*private func handleFlickFromOverlay(noteId: UUID, start: CGPoint, end: CGPoint, duration: TimeInterval, canvasSize: CGSize) {
-        // compute a pseudo DragGesture.Value for the existing handleFlick function
-        // We only need predictedEndTranslation; approximate it as (end - start)
-        // Build a small struct to mimic the pieces used in handleFlick
-        struct SimpleDrag {
-            var startLocation: CGPoint
-            var location: CGPoint
-            var predictedEndTranslation: CGSize
-        }
-        let predictedTranslation = CGSize(width: end.x - start.x, height: end.y - start.y)
-        let simple = SimpleDrag(startLocation: start, location: end, predictedEndTranslation: predictedTranslation)
-        // Find the active note index and call handleFlick(for:dragValue:in:)
-        if let idx = activeNotes.firstIndex(where: { $0.id == noteId }) {
-            // call existing handleFlick using the note id and synthesized data
-            // Note: we can't pass SimpleDrag directly; create a small adapter via overloading handleFlick or inline logic:
-            // We'll inline minimal flick behavior to reuse judgement and animation logic (same as handleFlick)
-            if flickedNoteIDs.contains(noteId) { return }
-            let flickVec = CGPoint(x: predictedTranslation.width, y: predictedTranslation.height)
-            let flickSpeed = hypot(flickVec.x, flickVec.y) / CGFloat(max(1e-6, duration))
-            guard flickSpeed > speedThreshold else { return }
-            let note = activeNotes[idx]
-            let theta = CGFloat(note.angleDegrees) * .pi / 180.0
-            let rodDir = CGPoint(x: cos(theta), y: sin(theta))
-            let n1 = CGPoint(x: -rodDir.y, y: rodDir.x); let n2 = CGPoint(x: rodDir.y, y: -rodDir.x)
-            let dot1 = n1.x * flickVec.x + n1.y * flickVec.y
-            let dot2 = n2.x * flickVec.x + n2.y * flickVec.y
-            let chosenNormal = (dot1 >= dot2) ? n1 : n2
-            let distance = max(canvasSize.width, canvasSize.height) * 1.5
-            let target = CGPoint(x: note.position.x + chosenNormal.x * distance, y: note.position.y + chosenNormal.y * distance)
-            if let work = autoDeleteWorkItems[noteId] { work.cancel(); autoDeleteWorkItems[noteId] = nil }
-            flickedNoteIDs.insert(noteId)
-            var elapsed: TimeInterval = 0.0
-            if let player = audioPlayer, let startDev = audioStartDeviceTime { elapsed = player.deviceCurrentTime - startDev } else if let sd = startDate { elapsed = Date().timeIntervalSince(sd) }
-            let dt = elapsed - note.hitTime
-            var judgementText = "OK"; var judgementColor: Color = .white
-            if abs(dt) <= perfectWindow { judgementText = "PERFECT"; judgementColor = .green; score += 3 }
-            else if (dt >= -goodWindowBefore && dt < -perfectWindow) || (dt > perfectWindow && dt <= goodWindowAfter) { judgementText = "GOOD"; judgementColor = .blue; score += 2 }
-            else { judgementText = "OK"; judgementColor = .white; score += 1 }
-            combo += 1; if combo > maxCombo { maxCombo = combo }
-            switch judgementText { case "PERFECT": perfectCount += 1; case "GOOD": goodCount += 1; case "OK": okCount += 1; default: break }
-            showJudgement(text: judgementText, color: judgementColor)
-            let flyDuration = 0.6
-            withAnimation(.easeOut(duration: flyDuration)) {
-                if let idx2 = activeNotes.firstIndex(where: { $0.id == noteId }) {
-                    activeNotes[idx2].position = target
-                }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + flyDuration + 0.05) {
-                withAnimation(.easeIn(duration: 0.12)) { self.activeNotes.removeAll { $0.id == noteId } }
-                self.flickedNoteIDs.remove(noteId)
-            }
-        } */
-    // Replace your existing handleFlickFromOverlay implementation with this minimal-safe-update:
-    // Key change: when computing the note's current origin/or position for the flying animation and judgement,
-    // if note.position is .zero (not yet positioned/spawned), fall back to note.targetPosition.
-
     private func handleFlickFromOverlay(noteId: UUID, start: CGPoint, end: CGPoint, duration: TimeInterval, canvasSize: CGSize, reportedVelocity: CGFloat? = nil) {
         struct SimpleDrag {
             var startLocation: CGPoint
@@ -535,7 +505,8 @@ struct ContentView: View {
         else { judgementText = "OK"; judgementColor = .white; score += 1 }
         combo += 1; if combo > maxCombo { maxCombo = combo }
         switch judgementText { case "PERFECT": perfectCount += 1; case "GOOD": goodCount += 1; case "OK": okCount += 1; default: break }
-        showJudgement(text: judgementText, color: judgementColor)
+        let judgementPos = (note.targetPosition != .zero) ? note.targetPosition : note.position
+        showJudgement(text: judgementText, color: judgementColor, position: judgementPos)
         GlobalSFX.shared.playFlickJudgement(judgementText)
 
         let flyDuration = 0.6
@@ -549,80 +520,7 @@ struct ContentView: View {
             self.flickedNoteIDs.remove(noteId)
         }
     }
- /*   private func handleFlickFromOverlay(noteId: UUID, start: CGPoint, end: CGPoint, duration: TimeInterval, canvasSize: CGSize, reportedVelocity: CGFloat? = nil) {
-        // compute a pseudo DragGesture.Value for the existing handleFlick function
-        // We only need predictedEndTranslation; approximate it as (end - start)
-        struct SimpleDrag {
-            var startLocation: CGPoint
-            var location: CGPoint
-            var predictedEndTranslation: CGSize
-        }
-        let predictedTranslation = CGSize(width: end.x - start.x, height: end.y - start.y)
-        let simple = SimpleDrag(startLocation: start, location: end, predictedEndTranslation: predictedTranslation)
 
-        // Find the active note index and call handleFlick(using inline logic)
-        guard let idx = activeNotes.firstIndex(where: { $0.id == noteId }) else { return }
-        if flickedNoteIDs.contains(noteId) { return }
-
-        // Compute flick vector and speed
-        let flickVec = CGPoint(x: predictedTranslation.width, y: predictedTranslation.height)
-        let dist = hypot(flickVec.x, flickVec.y)
-        // computed speed from passed duration (seconds) — guard tiny durations
-        let computedSpeed = dist / CGFloat(max(1e-6, duration))
-        // If overlay provided a reported velocity (px/sec), use the max of both to be robust
-        let flickSpeed: CGFloat
-        if let rep = reportedVelocity, rep > 0 {
-            flickSpeed = max(computedSpeed, rep)
-        } else {
-            flickSpeed = computedSpeed
-        }
-
-        print("DBG: handleFlickFromOverlay noteId=\(noteId) dist=\(dist) duration=\(duration) computedSpeed=\(computedSpeed) reported=\(String(describing: reportedVelocity)) flickSpeed=\(flickSpeed) threshold=\(speedThreshold)")
-
-        guard flickSpeed > speedThreshold else {
-            print("DBG: handleFlickFromOverlay skipped: flickSpeed \(flickSpeed) <= threshold \(speedThreshold)")
-            return
-        }
-
-        let note = activeNotes[idx]
-        let theta = CGFloat(note.angleDegrees) * .pi / 180.0
-        let rodDir = CGPoint(x: cos(theta), y: sin(theta))
-        let n1 = CGPoint(x: -rodDir.y, y: rodDir.x); let n2 = CGPoint(x: rodDir.y, y: -rodDir.x)
-        let dot1 = n1.x * flickVec.x + n1.y * flickVec.y
-        let dot2 = n2.x * flickVec.x + n2.y * flickVec.y
-        let chosenNormal = (dot1 >= dot2) ? n1 : n2
-        let distance = max(canvasSize.width, canvasSize.height) * 1.5
-        let target = CGPoint(x: note.position.x + chosenNormal.x * distance, y: note.position.y + chosenNormal.y * distance)
-
-        if let work = autoDeleteWorkItems[noteId] { work.cancel(); autoDeleteWorkItems[noteId] = nil }
-        flickedNoteIDs.insert(noteId)
-
-        var elapsed: TimeInterval = 0.0
-        if let player = audioPlayer, let startDev = audioStartDeviceTime { elapsed = player.deviceCurrentTime - startDev }
-        else if let sd = startDate { elapsed = Date().timeIntervalSince(sd) }
-        let dt = elapsed - note.hitTime
-
-        var judgementText = "OK"; var judgementColor: Color = .white
-        if abs(dt) <= perfectWindow { judgementText = "PERFECT"; judgementColor = .green; score += 3 }
-        else if (dt >= -goodWindowBefore && dt < -perfectWindow) || (dt > perfectWindow && dt <= goodWindowAfter) { judgementText = "GOOD"; judgementColor = .blue; score += 2 }
-        else { judgementText = "OK"; judgementColor = .white; score += 1 }
-        combo += 1; if combo > maxCombo { maxCombo = combo }
-        switch judgementText { case "PERFECT": perfectCount += 1; case "GOOD": goodCount += 1; case "OK": okCount += 1; default: break }
-        showJudgement(text: judgementText, color: judgementColor)
-        GlobalSFX.shared.playFlickJudgement(judgementText)
-
-        let flyDuration = 0.6
-        withAnimation(.easeOut(duration: flyDuration)) {
-            if let idx2 = activeNotes.firstIndex(where: { $0.id == noteId }) {
-                activeNotes[idx2].position = target
-            }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + flyDuration + 0.05) {
-            withAnimation(.easeIn(duration: 0.12)) { self.activeNotes.removeAll { $0.id == noteId } }
-            self.flickedNoteIDs.remove(noteId)
-        }
-
-    } */
     // MARK: - Body
     // 追加: ContentView struct の内部（body の外）に置いてください
     @ViewBuilder
@@ -630,7 +528,6 @@ struct ContentView: View {
         ForEach(activeNotes, id: \.id) { a in
             // indicator を先に描画（AnyView で型を固定）
             AnyView(flickIndicatorView(for: a, now: playheadTime))
-            
             // 1ノート分の描画は ActiveNoteView に一本化する
             ActiveNoteView(
                 note: a,
@@ -653,59 +550,6 @@ struct ContentView: View {
         } */
         GeometryReader { geo in
             ZStack {
-                /*   TouchOverlay(
-                 onTap: { id, loc in
-                 guard isPlaying && !isStopped else { return }
-                 handleTap(at: loc, in: loc)
-                 },
-                 onMove: { id, loc in
-                 self.fingerLocation = loc
-                 },
-                 onHoldStart: { id, loc in
-                 guard isPlaying && !isStopped else { return }
-                 // optional: assign touch->note mapping
-                 if let nid = findNearestNoteId(to: loc) { touchToNote[id] = nid }
-                 self.fingerLocation = loc
-                 self.isFingerDown = true
-                 handleHoldTouchBegan(at: loc)
-                 },
-                 onHoldEnd: { id, loc, duration in
-                 guard isPlaying && !isStopped else { return }
-                 if let assigned = touchToNote[id] {
-                 // use assigned mapping if available
-                 handleHoldTouchEnded(at: loc)
-                 touchToNote[id] = nil
-                 } else {
-                 handleHoldTouchEnded(at: loc)
-                 }
-                 self.isFingerDown = false
-                 self.fingerLocation = nil
-                 },
-                 onFlick: { id, start, end, velocity in
-                 guard isPlaying && !isStopped else { return }
-                 // nearest-note lookup (same as before)
-                 var closestId: UUID? = nil; var closestDist = CGFloat.greatestFiniteMagnitude
-                 for n in activeNotes {
-                 let d = hypot(n.position.x - start.x, n.position.y - start.y)
-                 if d < closestDist { closestDist = d; closestId = n.id }
-                 }
-                 if let noteId = closestId, closestDist <= hitRadius {
-                 // compute duration as time = distance / speed (speed is px/sec from TouchOverlay)
-                 let dx = end.x - start.x
-                 let dy = end.y - start.y
-                 let dist = hypot(dx, dy)
-                 let vel = max(CGFloat(1.0), velocity) // avoid division by zero; velocity is px/sec
-                 let dur = TimeInterval(dist / vel)    // seconds
-                 // ensure a tiny positive duration
-                 let safeDur = max(0.001, dur)
-                 handleFlickFromOverlay(noteId: noteId, start: start, end: end, duration: safeDur, canvasSize: geo.size)
-                 }
-                 }
-                 )
-                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                 .allowsHitTesting(isPlaying && !isStopped)
-                 .ignoresSafeArea()
-                 .zIndex(99) */
                 // debug: show game coordinate bounds
                 Color.clear
                     .frame(width: geo.size.width, height: geo.size.height)
@@ -1032,8 +876,13 @@ struct ContentView: View {
                 .allowsHitTesting(isPlaying && !isStopped) // keep hit testing only while playing
                 .ignoresSafeArea()
                 .zIndex(55) // above notes but below header (header uses zIndex 1000)
+                
+
                 // 置き換え後:
                 activeNotesStack(geo: geo)
+                nearbyJudgementOverlays(geo: geo)
+                // Insert this view builder call inside the ZStack, after activeNotesStack(geo: geo)
+
                 // Bottom controls
                 VStack {
                     Spacer()
@@ -1268,124 +1117,6 @@ struct ContentView: View {
                         } : nil
             )
             // Global drag gesture used for flicks / taps — attached only when a hold (isFingerDown) exists.
-      /*      .simultaneousGesture(
-                (isPlaying && !isStopped && isFingerDown) ? DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        if touchStartTime == nil {
-                            touchStartTime = Date()
-                            touchStartLocation = value.startLocation
-                            touchIsLongPress = false
-                            currentGestureID = UUID()
-                            currentGestureHasFlicked = false
-                            let work = DispatchWorkItem {
-                                DispatchQueue.main.async {
-                                    touchIsLongPress = true
-                                    handlePotentialLongPressStart(at: value.startLocation)
-                                }
-                            }
-                            touchLongPressWorkItem?.cancel()
-                            touchLongPressWorkItem = work
-                            DispatchQueue.global().asyncAfter(deadline: .now() + longPressThreshold, execute: work)
-                            handleHoldTouchBegan(at: value.startLocation)
-                        } else {
-                            fingerLocation = value.location
-                        }
-                    }
-                    .onEnded { value in
-                        touchLongPressWorkItem?.cancel()
-                        touchLongPressWorkItem = nil
-                        let start = touchStartTime ?? Date()
-                        let duration = Date().timeIntervalSince(start)
-                        let dx = value.location.x - (touchStartLocation?.x ?? value.location.x)
-                        let dy = value.location.y - (touchStartLocation?.y ?? value.location.y)
-                        let dist = hypot(dx, dy)
-
-                        if touchIsLongPress {
-                            handlePotentialLongPressEnd(at: value.location, duration: duration)
-                        } else {
-                            if dist < 20.0 {
-                                handleTap(at: value.location, in: value.startLocation)
-                            } else {
-                                handleGlobalFlick(dragValue: value, in: geo.size)
-                            }
-                        }
-
-                        handleHoldTouchEnded(at: value.location)
-
-                        // reset gesture
-                        currentGestureID = nil
-                        currentGestureHasFlicked = false
-                        touchStartTime = nil
-                        touchStartLocation = nil
-                        touchIsLongPress = false
-                    } : nil
-            )
-            .gesture(
-                (isPlaying && !isStopped && isFingerDown) ?
-                    DragGesture(minimumDistance: 16)
-                        .onEnded { value in
-                            handleGlobalFlick(dragValue: value, in: geo.size)
-                        } : nil
-            ) //<-FLICKはもどるけどTap+holdができなくなるやつ */
-            // Global drag gesture used for flicks / taps
-       /*    .simultaneousGesture(
-                (isPlaying && !isStopped) ? DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        if touchStartTime == nil {
-                            touchStartTime = Date()
-                            touchStartLocation = value.startLocation
-                            touchIsLongPress = false
-                            currentGestureID = UUID()
-                            currentGestureHasFlicked = false
-                            let work = DispatchWorkItem {
-                                DispatchQueue.main.async {
-                                    touchIsLongPress = true
-                                    handlePotentialLongPressStart(at: value.startLocation)
-                                }
-                            }
-                            touchLongPressWorkItem?.cancel()
-                            touchLongPressWorkItem = work
-                            DispatchQueue.global().asyncAfter(deadline: .now() + longPressThreshold, execute: work)
-                            handleHoldTouchBegan(at: value.startLocation)
-                        } else {
-                            fingerLocation = value.location
-                        }
-                    }
-                    .onEnded { value in
-                        touchLongPressWorkItem?.cancel()
-                        touchLongPressWorkItem = nil
-                        let start = touchStartTime ?? Date()
-                        let duration = Date().timeIntervalSince(start)
-                        let dx = value.location.x - (touchStartLocation?.x ?? value.location.x)
-                        let dy = value.location.y - (touchStartLocation?.y ?? value.location.y)
-                        let dist = hypot(dx, dy)
-
-                        if touchIsLongPress {
-                            handlePotentialLongPressEnd(at: value.location, duration: duration)
-                        } else {
-                            if dist < 20.0 {
-                                handleTap(at: value.location, in: value.startLocation)
-                            } else {
-                                handleGlobalFlick(dragValue: value, in: geo.size)
-                            }
-                        }
-
-                        handleHoldTouchEnded(at: value.location)
-
-                        // reset gesture
-                        currentGestureID = nil
-                        currentGestureHasFlicked = false
-                        touchStartTime = nil
-                        touchStartLocation = nil
-                        touchIsLongPress = false
-                    } : nil
-            )
-            .gesture(
-                DragGesture(minimumDistance: 16)
-                    .onEnded { value in
-                        handleGlobalFlick(dragValue: value, in: geo.size)
-                    }
-            ) */
             .fileImporter(isPresented: $isShowingImportPicker, allowedContentTypes: [UTType.json, UTType.audio], allowsMultipleSelection: false) { result in
                 switch result {
                 case .success(let urls):
@@ -2306,59 +2037,6 @@ struct ContentView: View {
         return nearest
     }
 
-   /* private func handleHoldTouchBegan(at location: CGPoint) {
-        guard !isStopped else { return }
-        isFingerDown = true; fingerLocation = location
-        let nowDev = audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970
-        var closestIdx: Int? = nil; var closestDist = CGFloat.greatestFiniteMagnitude
-        for (i, n) in activeNotes.enumerated() {
-            guard n.isHold else { continue }
-            guard !n.holdWasReleased else { continue }
-            guard !n.holdPressedByUser else { continue }
-            let d = hypot(n.targetPosition.x - location.x, n.targetPosition.y - location.y)
-            if d < closestDist && d <= hitRadius { closestDist = d; closestIdx = i }
-        }
-        guard let idx = closestIdx else { return }
-        if !activeNotes[idx].holdStarted {
-            activeNotes[idx].holdPressedByUser = true
-            activeNotes[idx].holdPressDeviceTime = nowDev
-            activeNotes[idx].holdLastTickDeviceTime = nowDev
-            return
-        }
-        var startTimeRef: TimeInterval?
-        if let t = activeNotes[idx].holdStartDeviceTime { startTimeRef = t }
-        else if let t = activeNotes[idx].holdStartWallTime { startTimeRef = t }
-        else {
-            if let player = audioPlayer, let startDev = audioStartDeviceTime { startTimeRef = startDev + activeNotes[idx].hitTime }
-            else if let sd = startDate { startTimeRef = sd.timeIntervalSince1970 + activeNotes[idx].hitTime }
-        }
-        guard let holdStartRef = startTimeRef else {
-            activeNotes[idx].holdPressedByUser = true; activeNotes[idx].holdPressDeviceTime = nowDev; activeNotes[idx].holdLastTickDeviceTime = nowDev; return
-        }
-        let dt = nowDev - holdStartRef
-        var judgementText = "OK"; var judgementColor: Color = .white
-        if abs(dt) <= perfectWindow { judgementText = "PERFECT"; judgementColor = .green; score += 3 }
-        else if (dt >= -goodWindowBefore && dt < -perfectWindow) || (dt > perfectWindow && dt <= goodWindowAfter) { judgementText = "GOOD"; judgementColor = .blue; score += 2 }
-        else {
-            let tooLateEarly = (dt < -goodWindowBefore) || (dt > goodWindowAfter)
-            if tooLateEarly {
-                judgementText = "MISS"; judgementColor = .red; missCount += 1
-                activeNotes[idx].holdWasReleased = true
-                withAnimation(.easeIn(duration: 0.12)) { self.activeNotes.removeAll { $0.id == activeNotes[idx].id } }
-                showJudgement(text: judgementText, color: judgementColor)
-                return
-            } else { judgementText = "OK"; judgementColor = .white; score += 1 }
-        }
-        combo += 1
-        if combo > maxCombo { maxCombo = combo }
-        switch judgementText { case "PERFECT": perfectCount += 1; case "GOOD": goodCount += 1; case "OK": okCount += 1; default: break }
-        showJudgement(text: judgementText, color: judgementColor)
-        GlobalSFX.shared.startHoldLoop()
-        activeNotes[idx].holdPressedByUser = true
-        activeNotes[idx].holdPressDeviceTime = nowDev
-        activeNotes[idx].holdLastTickDeviceTime = nowDev
-    }
-*/
     // Replace your existing handleHoldTouchBegan(at:) in ContentView.swift with this optimized version.
     // Key optimizations:
     // - Use squared distances to avoid expensive hypot() until the final chosen candidate.
@@ -2560,8 +2238,9 @@ struct ContentView: View {
         guard let idx = bestIdx else { return }
         let note = activeNotes[idx]
         let dt = elapsed - note.hitTime
+        // determine a reasonable position to display judgment (use targetPosition or note.position)
         var judgementText = "OK"; var judgementColor: Color = .white
-        if abs(dt) <= perfectWindow { judgementText = "PERFECT"; judgementColor = .green; score += 3 }
+        if abs(dt) <= perfectWindow { judgementText = "PERFECT"; judgementColor = .green;score += 3 }
         else if (dt >= -goodWindowBefore && dt < -perfectWindow) || (dt > perfectWindow && dt <= goodWindowAfter) { judgementText = "GOOD"; judgementColor = .blue; score += 2 }
         else { judgementText = "OK"; judgementColor = .white; score += 1 }
         combo += 1; if combo > maxCombo { maxCombo = combo }
@@ -2569,7 +2248,8 @@ struct ContentView: View {
         let noteID = note.id
         if let w = autoDeleteWorkItems[noteID] { w.cancel(); autoDeleteWorkItems[noteID] = nil }
         withAnimation(.easeOut(duration: 0.12)) { self.activeNotes.removeAll { $0.id == noteID } }
-        showJudgement(text: judgementText, color: judgementColor)
+        let judgementPos = (note.targetPosition != .zero) ? note.targetPosition : note.position
+        showJudgement(text: judgementText, color: judgementColor, position: judgementPos)
         GlobalSFX.shared.playTapJudgement(judgementText)
     }
 
@@ -2634,8 +2314,25 @@ struct ContentView: View {
 
     // MARK: - Utility / UI helpers
 
-    private func showJudgement(text: String, color: Color) {
-        lastJudgement = text; lastJudgementColor = color; showJudgementUntil = Date().addingTimeInterval(0.8)
+    // Replace existing showJudgement(text:color:) with this new version in ContentView.
+
+    private func showJudgement(text: String, color: Color, position: CGPoint? = nil) {
+        // update the global/top-right judgement as before
+        lastJudgement = text
+        lastJudgementColor = color
+        showJudgementUntil = Date().addingTimeInterval(0.8)
+
+        // if user wants nearby judgements and we were given a position, add a transient nearby judgement
+        guard showJudgementNearNote, let pos = position else { return }
+
+        let nj = NearbyJudgement(id: UUID(), text: text, color: color, position: pos, createdAt: Date(), duration: nearbyJudgementDuration)
+        nearbyJudgements.append(nj)
+
+        // schedule removal after duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + nearbyJudgementDuration) {
+            // remove without animation so the views don't reposition (which caused the central-move effect)
+            self.nearbyJudgements.removeAll { $0.id == nj.id }
+        }
     }
 
     private func shouldShowJudgement() -> Bool {

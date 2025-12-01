@@ -17,7 +17,8 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var settings: SettingsStore
     @Environment(\.presentationMode) private var presentationMode
-
+    @AppStorage("ui.showJudgementNearNote") private var showJudgementNearNote: Bool = false
+    @AppStorage("ui.judgementDisplayDuration") private var judgementDisplayDuration: Double = 0.45
     // Bindings to SettingsStore properties (safe for Slider/value consumers)
     private var approachDistanceFractionBinding: Binding<Double> {
         Binding(get: { settings.approachDistanceFraction },
@@ -58,6 +59,7 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                         Slider(value: approachSpeedBinding, in: 100...3000, step: 1)
                     }
+                    
 /*                    Spacer()
                     let exampleDistance = settings.approachDistanceFraction * min(geo.size.width, geo.size.height)
                     let derivedDuration = exampleDistance / max(settings.approachSpeed, 1.0)
@@ -79,6 +81,18 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                         Slider(value: holdFinishTrimThresholdBinding, in: 0.0...0.5, step: 0.001)
                     }
+                }
+
+                Section(header: Text("Display")) {
+                    Toggle(isOn: $showJudgementNearNote) {
+                        Text("Show judgements near notes")
+                    }
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(String(format: "Judgement display time: %.2fs", judgementDisplayDuration))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Slider(value: $judgementDisplayDuration, in: 0.05...1.20, step: 0.05)
                 }
 
                 Section {
