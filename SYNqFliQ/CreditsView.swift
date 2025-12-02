@@ -3,42 +3,286 @@
 //  SYNqFliQ
 //
 //  Created by Karen Naito on 2025/11/28.
-//
+//　珍しくAIを使わずに構成してるけど、内容の部分とか全部コピペして曲名変えてってやってるの、そこは機械の完全優位分野なんだからなぜ？ってなった()
 import SwiftUI
+
 struct CreditsView: View {
+    @State private var initialScrollPerformed: Bool = false
+    var onShowCredits: () -> Void = { }
+    var onClose: (() -> Void)? = nil
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
     var body: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .center) {
-                Text("LeaF").font(.title3.bold())
-            }
+        ScrollView{
             VStack(alignment: .leading){
-                Divider()
-                Text("0次元恋愛感情").foregroundColor(.secondary)
-                Text("BPM:")
-                Divider()
-                Text("4th_smile").foregroundColor(.secondary)
-                Text("Agilion").foregroundColor(.secondary)
-                Text("Aleph-0").foregroundColor(.secondary)
-                HStack(spacing: 12) {
-                    Label("LeaF's Page", systemImage: "link")
-                        .font(.footnote).foregroundColor(.blue)
+                Button(action: { onClose?() }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "chevron.left")
+                        Text("X︦︦").underline()
+                    }
                 }
-            }
-        }.border(Color(.red), width: 1)
-        HStack(alignment: .center) {
-            VStack(alignment: .center) {
-                Text("Camellia").font(.title3.bold())
-            }
-            VStack(alignment: .leading){
-                Text("+ERABY+E CONNEC+10N").foregroundColor(.secondary)
-                Text("Flamewall").foregroundColor(.secondary)
-                Text("Tera I_O").foregroundColor(.secondary)
-                HStack(spacing: 12) {
-                    Label("Camellia's Page", systemImage: "link")
-                        .font(.footnote).foregroundColor(.blue)
+                .buttonStyle(PlainButtonStyle())
+                
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading){
+                        Text("LeaF").font(.title3.bold()).foregroundStyle(colorScheme == .dark ? .white : .black)
+                        Divider()
+                        Text("Paraclete").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Mere Fancy").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("I").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Resurrection Spell").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Musical Movement").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Exclusive Utopia").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Arianrhod").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("0次元恋愛感情").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("4th smile").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Evanescent").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Poison AND÷OR Affection").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("メルへニア -malchenia-").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                                  Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("狂喜蘭舞").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Healing Hurts").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("ATHAZA").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Doppelgenger").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Lyrith -迷宮リリス-").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("MARENOL 1mg").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("MARENOL").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Qual").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("もぺもぺ(2019)").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Calamity Fortune(2019)").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Armageddon").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Wizdomiot(2020)").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Heterochromia Iridis(2020)").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Alice in Misanthrope -厭世アリス-").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Agilion").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Aleph-0(2022)").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("命日").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Verlesq").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("neo tinnitus").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Breakcore WTF").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Divider()
+                        HStack(spacing: 12) {
+                            Label("LeaF's Page", systemImage: "link")
+                                .font(.footnote).foregroundColor(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(colorScheme == .light ? .white : .gray.opacity(0.4))
+                    .cornerRadius(8)
+                    .clipped()
+                    .shadow(color: colorScheme == .light ? .gray.opacity(0.7) : .white.opacity(0.9), radius: 5)
+                    
+                    Spacer(minLength: 50)
+                    
+                    // .padding()
+                    //  .background(Color(white: 0.9))
+                    VStack(alignment: .leading){
+                        Text("Camellia").font(.title3.bold()).foregroundStyle(colorScheme == .dark ? .white : .black)
+                        Divider()
+                        Text("Body F10ating in the Zero Gravity Space").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("1nput This 2 Y0ur Spine").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Dance with Silence").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Compute It With Some Devilish Alcoholic Steampunk Engines").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Fly Wit Me").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("+ERABY+E CONNEC+10N").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Tera I_O").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("M1LLI0N PP").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Flamewall").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("BAD ACCESS (FROM A MOE MAID)").foregroundColor(.secondary).bold()
+                        Text("Album: Tera I/O").font(.caption).foregroundColor(.secondary)
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Divider()
+                        HStack(spacing: 12) {
+                            Label("Camellia's Page", systemImage: "link")
+                                .font(.footnote).foregroundColor(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(colorScheme == .light ? .white : .gray.opacity(0.4))
+                    .cornerRadius(8)
+                    .clipped()
+                    .shadow(color: colorScheme == .light ? .gray.opacity(0.7) : .white.opacity(0.9), radius: 5)
+                    Spacer()
                 }
+                .padding()
+                // .background(Color(white: 0.9))
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading){
+                        Text("EBIMAYO").font(.title3.bold()).foregroundStyle(colorScheme == .dark ? .white : .black)
+                        Divider()
+                        Text("GOODMEN").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("GOODTEK").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("GOODBOUNCE").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("GOODRAGE").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("GOODDRILL").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("GOODFORTUNE").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("GOODRUSH").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("GOODRAGE").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("GOODWORDL").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("BADSECRET").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Bad_Cycle").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Divider()
+                        HStack(spacing: 12) {
+                            Label("EBIMAYO's Page", systemImage: "link")
+                                .font(.footnote).foregroundColor(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(colorScheme == .light ? .white : .gray.opacity(0.4))
+                    .cornerRadius(8)
+                    .clipped()
+                    .shadow(color: colorScheme == .light ? .gray.opacity(0.7) : .white.opacity(0.9), radius: 5)
+                    
+                    Spacer(minLength: 50)
+                    
+                    // .padding()
+                    VStack(alignment: .leading){
+                        Text("A / Murasaki -Akamurasaki").font(.title3.bold()).foregroundStyle(colorScheme == .dark ? .white : .black)
+                        Divider()
+                        Text("擬遊戯具 -Psigra Noctis-").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Veritas ataxiΛ").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("Veritas ataxiΛ -Full Version-").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Spacer(minLength:10).frame(maxHeight: 50)
+                        Text("NOTITLE...yet").foregroundColor(.secondary).bold()
+                        Text("BPM:").font(.caption).foregroundColor(.secondary)
+                        Divider()
+                        HStack(spacing: 12) {
+                            Label("Akamurasaki's Page", systemImage: "link")
+                                .font(.footnote).foregroundColor(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(colorScheme == .light ? .white : .gray.opacity(0.4))
+                    .cornerRadius(8)
+                    .clipped()
+                    .shadow(color: colorScheme == .light ? .gray.opacity(0.7) : .white.opacity(0.9), radius: 5)
+                    
+                    Spacer()
+                }
+                .padding()
             }
         }
     }
 }
 
+// Preview
+struct CreditView_Previews: PreviewProvider {
+    static var previews: some View {
+        CreditsView(onShowCredits:{})
+            .preferredColorScheme(.dark)
+    }
+}

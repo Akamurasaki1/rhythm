@@ -98,7 +98,9 @@ struct SYNqFliQApp: App {
                     case .chapterSelect:
                         chapterSelectionView()
                     case .credits:
-                        CreditsView()
+                        CreditsView(onClose: {
+                            DispatchQueue.main.async { withAnimation { appState = .title } }
+                        })
                             .environmentObject(appModel)
                             .environmentObject(settings)
                     }
