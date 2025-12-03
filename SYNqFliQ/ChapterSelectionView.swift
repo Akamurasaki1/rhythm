@@ -23,6 +23,7 @@ public struct Chapter: Identifiable, Hashable {
 }
 
 public struct ChapterSelectionView: View {
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
     // Provided data / callbacks (unchanged)
     let chapters: [Chapter]
     var onSelect: (Chapter) -> Void
@@ -30,7 +31,7 @@ public struct ChapterSelectionView: View {
 
     // environment model(s)
     @EnvironmentObject var appModel: AppModel
-
+  
     // local state (preserve earlier helper names)
     @State private var searchText: String = ""
     @State private var playHistory: [PlayRecord] = []
@@ -52,6 +53,9 @@ public struct ChapterSelectionView: View {
     }
 
     public var body: some View {
+     
+
+    
     /*    VStack(spacing: 8) {
             Text("This is ChapterSelectionView")
                 .font(.system(size: 48, weight: .heavy, design: .rounded))
@@ -60,44 +64,25 @@ public struct ChapterSelectionView: View {
         }*/
        // NavigationView {
         GeometryReader { geo in
-            /*// 左カラム幅を固定（必要なら値を調整してください）
-            let leftColWidth: CGFloat = 250
-            let rightWidth = max(0, (geo.size.width - leftColWidth)*0.8)
-
-            HStack(alignment: .top) {
-                // Left: NavigationView containing only the search/toolbar (keeps sidebar look)
-                NavigationView {
-                    VStack(spacing: 8) {
-                        // Search + toolbar area
-                        VStack(spacing: 8) {
-                            TextField("Search chapters", text: $searchText)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            Button(action: { searchText = "" }) {
-                                Image(systemName: "xmark.circle")
-                            }
-                            .opacity(searchText.isEmpty ? 0.0 : 1.0)
-                        }
-                        .padding()
-
-                        Spacer() // keep search at top of left column
-                    }
-                    .navigationTitle("Chapters")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            if let onClose = onClose {
-                                Button("Back") { onClose() }
-                            }
-                        }
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button(action: { loadHistory() }) {
-                                Image(systemName: "arrow.clockwise")
-                            }
-                        }
-                    }
-                    .onAppear { loadHistory() }
+            Group {
+                if UIImage(named: "chap_selection_bg") != nil {
+                    Image("chap_selection_bg")
+                    
+                        .resizable(capInsets: EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)) // 全体に表示？
+                        .scaledToFill()
+                        .frame(maxWidth:geo.size.width,maxHeight: .infinity) // 横幅に合わせることで、縦長画面でも変にならない
+                        .ignoresSafeArea()
+                    
+                } else {
+                    Color.black
                 }
-                .frame(minWidth: leftColWidth,maxHeight: leftColWidth*0.8) // 固定幅の左カラム
-*/
+            }
+            .ignoresSafeArea()
+            
+            // Dim overlay to keep UI readable on top of bright images
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+         
             let headerHeight: CGFloat = 92
                 // Right: carousel area (outside the NavigationView) — pass only the right column size
             VStack(spacing: 0) {
@@ -139,7 +124,7 @@ public struct ChapterSelectionView: View {
                     .padding(.bottom, 6)
                 }
                 .frame(height: headerHeight)
-                .background(Color(UIColor.systemBackground))
+                .background(.clear)
                 .zIndex(1) // ensure header sits visually above the cards if overlapping
                 VStack{
                     carouselView(size: CGSize(width: geo.size.width*0.9, height: geo.size.height))
@@ -165,6 +150,7 @@ public struct ChapterSelectionView: View {
 
     private func carouselView(size: CGSize) -> some View {
         Spacer().frame(height: 2)
+        
 
         if filteredChapters.isEmpty {
             VStack {
@@ -203,8 +189,8 @@ public struct ChapterSelectionView: View {
 
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 14)
-                                        .fill(Color(UIColor.systemBackground))
-                                        .shadow(color: Color.black.opacity(0.18), radius: 6, x: 0, y: 4)
+               
+                                        
 
                                     HStack {
                                         chapterThumbnailView(ch)
@@ -258,11 +244,17 @@ public struct ChapterSelectionView: View {
                                         }
                                         .padding(.vertical, 14)
                                         .padding(.trailing, 16)
+                                        //.background(.red)
                                     }
+                                   // .padding() // .なしのこういうの書くとエラーしないけどそのViewが開けなくなる
+                                .background(colorScheme == .light ? .white : .gray.opacity(0.4))
+                                .cornerRadius(8)
+                                .clipped()
+                                .shadow(color: colorScheme == .light ? .gray.opacity(0.7) : .white.opacity(0.5), radius: 7)
                                 }
                                 .scaleEffect(scale)
                                 .opacity(opacity)
-                                .rotation3DEffect(.degrees(rotateDeg), axis: (x: 0, y: 1, z: 0), perspective: 0.7)
+                                .rotation3DEffect(.degrees(rotateDeg), axis: (x: 0, y: 1, z: 0), perspective: 1)
                                 .onTapGesture {
                                     withAnimation(.easeInOut) {
                                         selectedIndex = i
@@ -278,6 +270,7 @@ public struct ChapterSelectionView: View {
                                 }
                             }
                             .frame(width: size.width*0.8, height: 140)
+                            // .background(.black)
                             .id(i)
                         }
                     }

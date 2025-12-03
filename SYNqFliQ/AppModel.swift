@@ -110,7 +110,7 @@ final class AppModel: ObservableObject {
                 self.bundledSheets = results
                 print("DBG: AppModel.loadBundledSheets -> found \(results.count) sheets")
                 for entry in results {
-                    print(" - \(entry.filename) : \(entry.sheet.title)")
+                    print(" - \(entry.filename) : \(entry.sheet.title) : \(entry.sheet.composer)")
                 }
 
                 // IMPORTANT: do NOT auto-set selectedSheetFilename here.

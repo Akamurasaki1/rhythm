@@ -167,6 +167,7 @@ struct SYNqFliQApp: App {
             return SongSelectionView.SongSummary(
                 id: representative.entry.filename,
                 title: representative.entry.sheet.title,
+                composer: representative.entry.sheet.composer ?? "Other",
                 thumbnailFilename: representative.entry.sheet.thumbnailFilename ?? representative.entry.sheet.backgroundFilename,
                 bundledIndex: representative.index
             )

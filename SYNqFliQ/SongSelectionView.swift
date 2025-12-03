@@ -35,6 +35,7 @@ struct SongCell_ClosureExample: View {
         }) {
             HStack {
                 Text(song.title)
+                
                 Spacer()
                 if let idx = song.bundledIndex, appModel.bundledSheets.indices.contains(idx) {
                     if let diff = appModel.bundledSheets[idx].sheet.difficulty {
@@ -52,6 +53,7 @@ struct SongSelectionView: View {
     struct SongSummary: Identifiable, Equatable {
         let id: String        // e.g. sheet.filename
         let title: String
+        let composer: String
         let thumbnailFilename: String? // optional image name in bundle / Documents
         let bundledIndex: Int? // optional source index
     }
@@ -142,6 +144,7 @@ struct SongSelectionView: View {
                     results.append(SongSummary(
                         id: entry.filename,
                         title: entry.sheet.title,
+                        composer: entry.sheet.composer,
                         thumbnailFilename: entry.sheet.thumbnailFilename,
                         bundledIndex: idx
                     ))
@@ -225,6 +228,7 @@ struct SongSelectionView: View {
                                         } else {
                                             withAnimation(.spring()) {
                                                 dragOffsetY = 0
+                                              //  dragOffsetX = 0
                                             }
                                         }
                                     }
@@ -371,18 +375,28 @@ struct SongSelectionView: View {
 
                                     VStack {
                                         ZStack {
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(selectedIndex == i ? Color.blue : Color.gray.opacity(0.3))
-                                                .frame(width: carouselItemWidth, height: 64)
+                                            RoundedRectangle(cornerRadius: selectedIndex == i ? 10 : 1)
+                                                .fill(selectedIndex == i ? Color.black.opacity(0.9) : Color.gray.opacity(0.3))
+                                                .frame(width: selectedIndex == i ? carouselItemWidth * 1.5 : carouselItemWidth , height: selectedIndex == i ? 96 : 64)
                                                 .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                                            Text(song.title)
-                                                .foregroundColor(.white)
-                                                .bold()
+                                                
+                                                
+                                            VStack(spacing: 4){
+                                                Text(song.title)
+                                                    .foregroundColor(.white)
+                                                    .bold()
+                                                Text(song.composer)
+                                                    .foregroundColor(Color.gray.opacity(0.9))
+                                                    .bold()
+                                            }
+                                        
                                         }
+                                        .zIndex(selectedIndex == i ? 0 : -1)
+                                        .offset(x: selectedIndex == i ? carouselItemWidth * -0.25 : 0,y:selectedIndex == i ? 0 : 16)
                                     }
                                     .scaleEffect(scale)
                                     .opacity(opacity)
-                                    .rotation3DEffect(.degrees(rotateDeg), axis: (x: 0, y: 1, z: 0), perspective: 0.7)
+                                    .rotation3DEffect(.degrees(rotateDeg), axis: (x: 0, y: 1.2, z: 0), perspective: 0.7)
                                     .onTapGesture {
                                         withAnimation {
                                             selectedIndex = i
@@ -392,7 +406,7 @@ struct SongSelectionView: View {
                                         }
                                     }
                                 }
-                                .frame(width: carouselItemWidth, height: 80)
+                                .frame(width: carouselItemWidth, height: 100) // タイトルと作曲者名のはいっているcarouselが見える高さと幅
                                 .id(i)
                             }
                         }
@@ -522,7 +536,8 @@ struct SongSelectionView: View {
             print("DBG: SongSelection selected -> filename=\(entry.filename) difficulty=\(String(describing: entry.sheet.difficulty))")
 
             // notify caller and close
-            onChoose(SongSummary(id: entry.filename, title: entry.sheet.title, thumbnailFilename: entry.sheet.thumbnailFilename, bundledIndex: nil), entry.sheet.difficulty)
+            onChoose(SongSummary(id: entry.filename, title: entry.sheet.title, composer: entry.sheet.composer,
+                thumbnailFilename: entry.sheet.thumbnailFilename, bundledIndex: nil), entry.sheet.difficulty)
             appModel.closeSongSelection()
         }
 

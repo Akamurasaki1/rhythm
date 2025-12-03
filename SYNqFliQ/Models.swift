@@ -1,3 +1,5 @@
+// Composer名表記を忘れないようにcomposer項目は必須に。(著作権関連の安全策)
+
 import Foundation
 import SwiftUI
 import CoreGraphics
@@ -43,6 +45,7 @@ public struct Sheet: Codable, Equatable {
     public var version: Int?
     public var chapter: String?
     public var title: String
+    public var composer: String
     public var difficulty: String?
     public var level: Int?
     public var id: String?
@@ -55,6 +58,7 @@ public struct Sheet: Codable, Equatable {
 
     public init(title: String = "Untitled", notes: [SheetNote] = [], audioFilename: String? = nil) {
         self.title = title
+        self.composer = "Unknown"
         self.notes = notes
         self.audioFilename = audioFilename
     }
