@@ -46,6 +46,8 @@ public struct Sheet: Codable, Equatable {
     public var chapter: String?
     public var title: String
     public var composer: String
+    /// 追加: 譜面制作者（任意）
+    public var author: String?
     public var difficulty: String?
     public var level: Int?
     public var id: String?
@@ -56,14 +58,18 @@ public struct Sheet: Codable, Equatable {
     public var notes: [SheetNote]
     public var offset: Double?
 
-    public init(title: String = "Untitled", notes: [SheetNote] = [], audioFilename: String? = nil) {
+    public init(title: String = "Untitled",
+                notes: [SheetNote] = [],
+                audioFilename: String? = nil,
+                composer: String = "Unknown",
+                author: String? = nil) {
         self.title = title
-        self.composer = "Unknown"
+        self.composer = composer
         self.notes = notes
         self.audioFilename = audioFilename
+        self.author = author
     }
 }
-
 /// アプリ内で再生に使うノーツ表現（normalizedPosition を CGPoint で保持）
 public struct Note: Equatable {
     public var id: String?            // 元の SheetNote.id を保存しておく（任意）

@@ -11,6 +11,7 @@ import AVFoundation
 import UniformTypeIdentifiers
 import UIKit
 import AVKit
+import FirebaseAuth
 
 // Lightweight example cell using closure style (kept for reference / reuse)
 struct SongCell_ClosureExample: View {
@@ -58,11 +59,25 @@ struct SongSelectionView: View {
         let bundledIndex: Int? // optional source index
     }
 
+    @ObservedObject private var store = ScoreStore.shared
+    private var currentUserID: String {
+        if let uid = AuthManager.shared.firebaseUser?.uid { return uid }
+        return "local-user"
+    }
+
+    // Provide a sensible default so all initializers don't have to set this explicitly.
+    // This fixes "Return from initializer without initializing all stored properties".
+    var onPlay: (Sheet) -> Void = { _ in }
+
+    @State private var showingAlert: Bool = false
+    @State private var alertMessage: String = ""
+
     var songs: [SongSummary] = []
     var onClose: () -> Void = { }
     // onChoose passes selected SongSummary and an optional difficulty string (nil => default/unknown)
     var onChoose: (SongSummary, String?) -> Void = { _, _ in }
 
+    // Designated initializer for programmatic lists
     init(songs: [SongSummary] = [],
          onClose: @escaping () -> Void = {},
          onChoose: @escaping (SongSummary, String?) -> Void = { _, _ in }) {
@@ -70,6 +85,12 @@ struct SongSelectionView: View {
         self.onClose = onClose
         self.onChoose = onChoose
     }
+
+    // Convenience initializer when you want to provide a play callback (e.g., to start playback)
+    init(onPlay: @escaping (Sheet) -> Void) {
+        self.onPlay = onPlay
+    }
+
 
     var body: some View {
      /*   VStack(spacing: 8) {
@@ -510,13 +531,44 @@ struct SongSelectionView: View {
         }
 
         // MARK: - selection helpers
+        
         private func choose(song: SongSummary, difficulty: String) {
             // Attempt to find a BundledSheet for this title+difficulty
             if let entry = findEntry(for: song, matchingDifficulty: difficulty) {
                 performSelect(entry: entry, forSongTitle: song.title)
                 return
             }
+            // 2) Fallback: user-saved sheets (ScoreStore)
+            let userCandidates = ScoreStore.shared.userSheets.filter { $0.title == song.title }
+            if !userCandidates.isEmpty {
+                // Try exact difficulty match
+                if let exactUser = userCandidates.first(where: { ($0.difficulty ?? "") == difficulty }) {
+                    performSelectUser(sheet: exactUser, forSongTitle: song.title)
+                    return
+                }
+                // Case-insensitive match
+                if let ciUser = userCandidates.first(where: { ($0.difficulty ?? "").lowercased() == difficulty.lowercased() }) {
+                    performSelectUser(sheet: ciUser, forSongTitle: song.title)
+                    return
+                }
+                // Numeric fallback (e.g., "12" matches "Lv.12" etc.)
+                let numeric = difficulty.compactMap { $0.wholeNumberValue }.map { String($0) }.joined()
+                if !numeric.isEmpty {
+                    if let byNum = userCandidates.first(where: {
+                        let s = ($0.difficulty ?? "")
+                        return s.contains(numeric) || s.components(separatedBy: CharacterSet.decimalDigits.inverted).joined() == numeric
+                    }) {
+                        performSelectUser(sheet: byNum, forSongTitle: song.title)
+                        return
+                    }
+                }
 
+                // If multiple user candidates but none matched difficulty heuristics, pick the first as a fallback
+                if let first = userCandidates.first {
+                    performSelectUser(sheet: first, forSongTitle: song.title)
+                    return
+                }
+            }
             // fallback: if the provided bundledIndex points to an entry, use it
             if let idx = song.bundledIndex, appModel.bundledSheets.indices.contains(idx) {
                 performSelect(entry: appModel.bundledSheets[idx], forSongTitle: song.title)
@@ -540,8 +592,30 @@ struct SongSelectionView: View {
                 thumbnailFilename: entry.sheet.thumbnailFilename, bundledIndex: nil), entry.sheet.difficulty)
             appModel.closeSongSelection()
         }
+        // New: performSelect for user-saved Sheet
 
-        private func findEntry(for song: SongSummary, matchingDifficulty diff: String) -> BundledSheet? {
+        private func performSelectUser(sheet: Sheet, forSongTitle title: String) {
+            // persist selection into model using the sheet.id (safeID) as identifier
+            let sheetID = sheet.id ?? UUID().uuidString
+            appModel.selectedSheetFilename = sheetID           // identification used by AppModel
+            appModel.selectedDifficulty = sheet.difficulty
+
+            print("DBG: SongSelection selected (user) -> id=\(sheetID) difficulty=\(String(describing: sheet.difficulty))")
+
+            // Post notification so the ContentView (which contains startPlayback) can react and start playing.
+            let uid = AuthManager.shared.firebaseUser?.uid ?? "local-user"
+            NotificationCenter.default.post(name: .playSheet, object: nil, userInfo: [
+                "sheetID": sheetID,
+                "userID": uid
+            ])
+
+            // notify caller and close (mirror BundledSheet payload shape)
+            onChoose(SongSummary(id: sheetID, title: sheet.title, composer: sheet.composer,
+                thumbnailFilename: sheet.thumbnailFilename, bundledIndex: nil), sheet.difficulty)
+            appModel.closeSongSelection()
+        }
+
+   /*     private func findEntry(for song: SongSummary, matchingDifficulty diff: String) -> BundledSheet? {
             // Prefer exact match of difficulty string (case-sensitive)
             let candidates = appModel.bundledSheets.filter { $0.sheet.title == song.title }
             if let exact = candidates.first(where: { ($0.sheet.difficulty ?? "") == diff }) {
@@ -563,10 +637,34 @@ struct SongSelectionView: View {
             }
             // nothing matched
             return nil
-        }
+        } */
+        // Bundled entry finder remains the same (keeps existing heuristics)
+            private func findEntry(for song: SongSummary, matchingDifficulty diff: String) -> BundledSheet? {
+                // Prefer exact match of difficulty string (case-sensitive)
+                let candidates = appModel.bundledSheets.filter { $0.sheet.title == song.title }
+                if let exact = candidates.first(where: { ($0.sheet.difficulty ?? "") == diff }) {
+                    return exact
+                }
+                // fallback: try case-insensitive match
+                if let ci = candidates.first(where: { ($0.sheet.difficulty ?? "").lowercased() == diff.lowercased() }) {
+                    return ci
+                }
+                // fallback: if diff is a number (e.g. "4" or "Level 4"), attempt to match numeric suffix
+                let numeric = diff.compactMap { $0.wholeNumberValue }.map { String($0) }.joined()
+                if !numeric.isEmpty {
+                    if let byNum = candidates.first(where: {
+                        let s = ($0.sheet.difficulty ?? "")
+                        return s.contains(numeric) || s.components(separatedBy: CharacterSet.decimalDigits.inverted).joined() == numeric
+                    }) {
+                        return byNum
+                    }
+                }
+                // nothing matched
+                return nil
+            }
 
         // When user taps a carousel tile we either pick the only candidate, or show a difficulty picker
-        private func selectOrShowPicker(for song: SongSummary) {
+      /*  private func selectOrShowPicker(for song: SongSummary) {
             let candidates = appModel.bundledSheets.filter { $0.sheet.title == song.title }
             if candidates.isEmpty {
                 if let idx = song.bundledIndex, appModel.bundledSheets.indices.contains(idx) {
@@ -586,7 +684,40 @@ struct SongSelectionView: View {
             difficultyCandidates = candidates.sorted { ($0.sheet.difficulty ?? "") < ($1.sheet.difficulty ?? "") }
             pendingSongTitle = song.title
             showingDifficultyPicker = true
-        }
+        }*/
+        // selectOrShowPicker: try bundled first; if none, try single user-saved candidate, else show difficulty picker for bundled
+          private func selectOrShowPicker(for song: SongSummary) {
+              let bundledCandidates = appModel.bundledSheets.filter { $0.sheet.title == song.title }
+              if bundledCandidates.isEmpty {
+                  // try user-saved candidates
+                  let userCandidates = ScoreStore.shared.userSheets.filter { $0.title == song.title }
+                  if userCandidates.count == 1 {
+                      performSelectUser(sheet: userCandidates[0], forSongTitle: song.title)
+                      return
+                  } else if userCandidates.count > 1 {
+                      // if multiple user-saved difficulties exist, pick the first as fallback (could show UI dialog if desired)
+                      // For now pick first and log; you can replace this with a confirmationDialog that lists userCandidates
+                      print("DBG: multiple user-saved candidates for \(song.title). picking first by default.")
+                      performSelectUser(sheet: userCandidates[0], forSongTitle: song.title)
+                      return
+                  } else {
+                      // no candidates at all
+                      print("DBG: No candidate sheets found for \(song.title)")
+                      return
+                  }
+              }
+
+              // If exactly one bundled candidate, pick it
+              if bundledCandidates.count == 1 {
+                  performSelect(entry: bundledCandidates[0], forSongTitle: song.title)
+                  return
+              }
+
+              // multiple bundled -> show difficulty picker (existing flow)
+              difficultyCandidates = bundledCandidates.sorted { ($0.sheet.difficulty ?? "") < ($1.sheet.difficulty ?? "") }
+              pendingSongTitle = song.title
+              showingDifficultyPicker = true
+          }
 
         private func onCancelIfNeeded() {
             if focusedIndex == nil {

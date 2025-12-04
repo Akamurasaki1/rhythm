@@ -48,17 +48,22 @@
 				ContentView.swift,
 				Credits.json,
 				CreditsView.swift,
+				CrescentView.swift,
 				FloatingButton.swift,
 				GlitchOverlay.swift,
 				"GoogleService-Info.plist",
 				HistoryScreen.swift,
 				HistoryUIViews.swift,
+				ImportScoreView.swift,
 				JudgementNearby.swift,
 				Models.swift,
 				Models/FirebaseModels.swift,
 				NoiseSweepView.swift,
+				Notifications.swift,
+				PlaybackControllerFacade.swift,
 				PlayHistory.swift,
 				ResultsView.swift,
+				ScoreStore.swift,
 				Services/Auth/AccountSettingsView.swift,
 				Services/Auth/AuthManager.swift,
 				Services/Auth/ImagePicker.swift,
@@ -69,6 +74,7 @@
 				ShareSheet.swift,
 				SongSelectionView.swift,
 				SoundEffectManager.swift,
+				StoriesView.swift,
 				SYNqFliQApp.swift,
 				TitleView.swift,
 				TouchOverlay.swift,
@@ -92,6 +98,16 @@
 			target = 9C0B8E692EC880DA000337A1 /* SYNqFliQ */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		9CF790042EE18707001623B1 /* Exceptions for "SYNqFliQ" folder in "Copy Bundle Resources" phase from "SYNqFliQ" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 9C0B8E682EC880DA000337A1 /* Resources */;
+			membershipExceptions = (
+				Notifications.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9C0B8E7A2EC880DC000337A1 /* SYNqFliQTests */ = {
@@ -119,6 +135,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9C59C8A72ED6FAC500FBABC3 /* Exceptions for "SYNqFliQ" folder in "SYNqFliQ" target */,
+				9CF790042EE18707001623B1 /* Exceptions for "SYNqFliQ" folder in "Copy Bundle Resources" phase from "SYNqFliQ" target */,
 			);
 			path = SYNqFliQ;
 			sourceTree = "<group>";

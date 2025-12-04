@@ -34,6 +34,7 @@
     },
     {
       "extent" : "full-screen",
+      "filename" : "block1_0004 1.png",
       "idiom" : "ipad",
       "minimum-system-version" : "12.0",
       "orientation" : "portrait",
@@ -42,6 +43,7 @@
     },
     {
       "extent" : "full-screen",
+      "filename" : "block1_0004.png",
       "idiom" : "ipad",
       "minimum-system-version" : "12.0",
       "orientation" : "landscape",

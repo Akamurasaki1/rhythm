@@ -161,3 +161,25 @@ final class AppModel: ObservableObject {
         }
     }
 }
+extension AppModel {
+    /// Return the selected Sheet, searching bundled sheets first, then user-saved sheets.
+    /// Assumes:
+    /// - appModel.bundledSheets: [BundledSheet] where BundledSheet.filename is the id for bundled files
+    /// - ScoreStore.shared.userSheets: [Sheet] for imported user scores
+    var resolvedSelectedSheet: Sheet? {
+        guard let sel = self.selectedSheetFilename else { return nil }
+
+        // 1) try bundled
+        if let bundled = self.bundledSheets.first(where: { $0.filename == sel }) {
+            return bundled.sheet
+        }
+
+        // 2) try user-saved
+        if let user = ScoreStore.shared.userSheets.first(where: { $0.id == sel }) {
+            return user
+        }
+
+        // 3) fallback: maybe sel is a bundled title rather than filename — optional heuristics could be added
+        return nil
+    }
+}

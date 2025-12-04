@@ -20,12 +20,80 @@ import SwiftUI
 import AVFoundation
 import AVKit
 import UniformTypeIdentifiers
+import Foundation
+import FirebaseAuth
 
+// MARK: - Crescent shape: outer circle minus inner circle (even-odd fill)
+/* struct CrescentShape: Shape {
+    var innerAngle: CGFloat = .pi
+    var innerOffsetFraction: CGFloat = 0.62
+    var innerRadiusRatio: CGFloat = 0.62
+
+    func path(in rect: CGRect) -> Path {
+        let cx = rect.midX
+        let cy = rect.midY
+        let outerR = min(rect.width, rect.height) / 2.0
+        let innerR = outerR * innerRadiusRatio
+        let maxOffset = max(0, outerR - innerR)
+        let offset = maxOffset * innerOffsetFraction
+        let innerCx = cx + cos(innerAngle) * offset
+        let innerCy = cy + sin(innerAngle) * offset
+
+        var p = Path()
+        p.addEllipse(in: CGRect(x: cx - outerR, y: cy - outerR, width: outerR * 2, height: outerR * 2))
+        p.addEllipse(in: CGRect(x: innerCx - innerR, y: innerCy - innerR, width: innerR * 2, height: innerR * 2))
+        return p
+    }
+} TitleViewの方にあるよ */
+// MARK: - SplitCircleView
+// Renders a circle that is visually split into two colors with a soft blurred boundary.
+// Implementation: draw a base (light) circle, overlay a darker circle offset a bit to the left,
+// blur the dark overlay for a soft edge, then mask to the central circle so the outside remains transparent.
+private struct SplitCircleView: View {
+    var diameter: CGFloat = 200
+    var leftColor: Color = Color(red: 0.58, green: 0.18, blue: 0.18) // burgundy
+    var rightColor: Color = Color(red: 0.66, green: 0.88, blue: 0.88) // pale aqua
+    var darkOffsetX: CGFloat = -36 // how much left-dark patch is offset (controls curve)
+    var blurRadius: CGFloat = 18    // softness of the division
+    var body: some View {
+        ZStack {
+            // right / base color
+            Circle()
+                .fill(rightColor)
+                .frame(width: diameter, height: diameter)
+
+            // left darker patch: offset circle blurred and masked to main circle
+            Circle()
+                .fill(leftColor)
+                .frame(width: diameter, height: diameter)
+                .offset(x: darkOffsetX)
+                .blur(radius: blurRadius)
+                .compositingGroup() // isolate blur before masking
+                .mask(
+                    Circle()
+                        .frame(width: diameter, height: diameter)
+                )
+
+            // small crisp inner boundary highlight (on the right side) to suggest depth
+            Circle()
+                .stroke(Color.white.opacity(0.06), lineWidth: 6)
+                .frame(width: diameter - 2, height: diameter - 2)
+                .blendMode(.overlay)
+        }
+        .frame(width: diameter, height: diameter)
+        .shadow(color: Color.black.opacity(0.32), radius: 12, x: 0, y: 8)
+
+    }
+}
 
 // MARK: - ContentView
 
 struct ContentView: View {
     @EnvironmentObject private var appModel: AppModel
+    @State private var showSubtitle = false
+    @State private var logoScale: CGFloat = 1.0
+    @State private var playMoved: Bool = false
+    
 
     // Add this inside ContentView (struct)
     // Replace your existing nearbyJudgementOverlays(geo:) implementation with this version.
@@ -55,7 +123,6 @@ struct ContentView: View {
     @State private var nearbyJudgements: [NearbyJudgement] = []
     // default nearby judgement display duration
     @AppStorage("ui.judgementDisplayDuration") private var nearbyJudgementDuration: TimeInterval = 0.45
-    
     // MARK: State
     @State private var showingEditor: Bool = false
     @State private var bundledSheets: [(filename: String, sheet: Sheet)] = []
@@ -156,7 +223,10 @@ struct ContentView: View {
     // @State private var holdFillDurationFraction: Double = 1.0
     // @State private var holdFinishTrimThreshold: Double = 0.02
     // --- Insert into ContentView (inside the View struct) ---
-
+    @State private var lastPausedNoteID: UUID? = nil
+    @State private var lastPausedAnchorExecTime: TimeInterval? = nil
+    @State private var pausedAbsoluteSpawnTimes: [UUID: TimeInterval] = [:]
+    @State private var pausedAbsoluteClearTimes: [UUID: TimeInterval] = [:]
     @EnvironmentObject private var settings: SettingsStore
     // Paste these inside ContentView (struct) near other helper functions.
     //extension Optional: OptionalProtocol {}
@@ -325,27 +395,7 @@ struct ContentView: View {
 
         print("resetAll: cleared audio, background, timers, activeNotes and scoring")
     }
-    // ContentView.swift の struct のプロパティ群の近くに追加
-    @State private var showRecorderNotInstalledAlert = false
-    // ContentView.swift の struct のメソッド領域（body の外）に追加
-    private func openRecorderApp() {
-        // ここを Recorder が登録しているスキームに合わせる（例: synqfliq-recorder）
-        let scheme = "synqfliq-recorder"
-        guard let url = URL(string: "\(scheme)://") else { return }
 
-        if UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-        } else {
-            // インストールされていない場合は App Store に誘導するかアラートを表示
-            // ここでは簡易にアラートフラグを立てています。App Store に飛ばすなら下の comment を使ってください。
-            showRecorderNotInstalledAlert = true
-
-            // App Store に直接飛ばす例（App Store の実際の ID に置き換えてください）
-            // if let appStoreURL = URL(string: "https://apps.apple.com/app/idYOUR_APPSTORE_ID") {
-            //     UIApplication.shared.open(appStoreURL, options: [:], completionHandler: nil)
-            // }
-        }
-    }
     private func handleImportedFile(url: URL) {
         DispatchQueue.global(qos: .userInitiated).async {
             var didStartAccess = false
@@ -519,7 +569,25 @@ struct ContentView: View {
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.6), radius: 8, x: 0, y: 4)
         } */
+        
         GeometryReader { geo in
+
+            let cx = geo.size.width / 2
+            let cy = geo.size.height / 2
+
+            // sizes tuned to your sketch: center diameter = 200
+       //     let centerSize: CGFloat = min(geo.size.width, geo.size.height,300)
+            let leftCrescentSize: CGFloat = 100  // smaller left crescent (history)
+         //   let rightUPCresentSize: CGFloat = 75
+            let rightCrescentSize: CGFloat = max(350 ,min(geo.size.width*0.7,geo.size.height*0.7))  // larger right crescent (play)
+            // distance from center for crescent center points so they visually hug the center
+            let leftDistance = 0.0 //centerSize * 0.62
+            let rightDistance = 0.0 // centerSize * 0.78
+
+            // angles for placement (upper-left / upper-right-ish)
+            let leftAngle = Angle.degrees(-140)   // history small crescent (slightly behind left edge)
+            let rightAngle = Angle.degrees(-90)//(-40)   // play large crescent (upper-right area)
+
             ZStack {
                 // debug: show game coordinate bounds
                 Color.clear
@@ -542,7 +610,10 @@ struct ContentView: View {
                 } else {
                     Color.black.ignoresSafeArea()
                 }
-                
+                // Insert this .onReceive modifier into the top-level container in ContentView's body,
+                // for example after the main ZStack/GeometryReader: `.onReceive(NotificationCenter.default.publisher(for: .playSheet)) { notif in ... }`
+
+
                 // Interaction overlay: handles touches for hold notes
                 // replace the existing TouchOverlay(...) block with this
                 // Place this inside ContentView's ZStack near the top (replace existing "選曲に戻る" button)
@@ -762,66 +833,70 @@ struct ContentView: View {
                 // Bottom controls
                 VStack {
                     Spacer()
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            if isPlaying && !isStopped {
-                                pausePlayback()
-                            } else if isPlaying && isStopped {
-                                resumePlayback()
-                                if let player = audioPlayer { player.play() }
-                            } else {
-                                // Start new play using appModel.selectedSheet (SongSelectionView manages selection)
-                                if let sel = appModel.selectedSheet {
-                                    sheetNotesToPlay = sel.notes
-                                    notesToPlay = sel.notes.asNotes()
-                                } else {
-                                    sheetNotesToPlay = []
-                                    notesToPlay = []
+
+                    VStack {
+                        FloatingButton(amplitude: 10, speed: 1.6, action: {
+                            // keep the small press animation you had on the floating button
+                            withAnimation(.easeOut(duration: 0.12)) { logoScale = 0.96 }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                                withAnimation(.spring()) { logoScale = 1.0 }
+
+                                // ---- FULL play/pause/resume/start logic (copied from your big Button) ----
+                                  if isPlaying && !isStopped {
+                                      // currently playing and not stopped -> pause
+                                      pausePlayback()
+                                  } else if isPlaying && isStopped {
+                                      // currently playing but stopped -> resume
+                                      resumePlayback()
+                                      if let player = audioPlayer { player.play() }
+                                  } else {
+                                      // neither playing -> start new playback (uses appModel.selectedSheet)
+                                      if let sel = appModel.resolvedSelectedSheet {
+                                          sheetNotesToPlay = sel.notes
+                                          notesToPlay = sel.notes.asNotes()
+                                      } else {
+                                          sheetNotesToPlay = []
+                                          notesToPlay = []
+                                      }
+                                      startPlayback(in: geo.size)
+                                  }
+                                  // ---- end logic ----
+                              }
+                        }) {
+                            CrescentView(size: isPlaying && !isStopped ? 0 : rightCrescentSize ,
+                                         innerAngle: Angle.degrees( rightAngle.degrees + 180 ),
+                                         innerOffsetFraction: 0.66,
+                                         innerRadiusRatio: 0.60,
+                                         gradient: LinearGradient(gradient: Gradient(colors: [Color(red: 2/256, green: 0, blue: 36/256, opacity: 1), Color(red: 9/256, green: 9/256, blue: 121/256, opacity: 1),Color(red: 0, green: 212/256, blue: 255/256, opacity: 1)]), startPoint: .topLeading, endPoint: .bottomTrailing)) {
+                                VStack {
+                                    Image(systemName: isPlaying && !isStopped ? "pause.fill" : "play.fill")
+                                        .font(.system(size: isPlaying && !isStopped ? 70 : 150))
+                                        .foregroundStyle(Color.white)
+                                        .offset(y: isPlaying && !isStopped ? 0 :  10)
+                                    Text(isPlaying && !isStopped ? "Pause" : (isPlaying && isStopped ? "Resume" : "Start"))
+                                        .font(.subheadline).bold()
+                                        .foregroundStyle(Color.white)
+                                        
                                 }
-                                startPlayback(in: geo.size)
+                                .padding(.leading, 6)
                             }
-                        }) {
-                          //  if (isPlaying && !isStopped || isPlaying && isStopped) {
-                                Text(isPlaying && !isStopped ? "Stop" : (isPlaying && isStopped ? "Resume" : "Start"))
-                                    .font(.headline)
-                                    .padding(.vertical, 10)
-                                    .padding(.horizontal, 16)
-                                    .background((isPlaying && !isStopped) ? Color.red : Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                  //  .position(.bottom, alignment: .center)
-                          //  }else{
-                            //    Text("Start")
-                          //          .font(.title)
-                              //      .fontWeight(.bold)
-                                //    .position(.center, alignment: .center)
-                           // }
                         }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    // compute animated target position: if playing, move to top-right (with margin), otherwise the original hugging position
+                    .position(
+                        x: isPlaying && !isStopped
+                        ? (geo.size.width - 35)                     // top-right x (16pt margin)
+                            : (cx + CGFloat(cos(rightAngle.radians)) * rightDistance), // original x
+                        y: isPlaying && !isStopped 
+                        ? 35                      // top-right y (16pt margin from top)
+                        : (cy + CGFloat(sin(rightAngle.radians)) * rightDistance) // original y
+                    )
                     
-                        Spacer()
-                        Button(action: {
-                            openRecorderApp()
-                        }) {
-                            Text("Editor")
-                                .font(.subheadline)
-                                .padding(8)
-                                .background(Color.blue.opacity(0.85))
-                                .foregroundColor(.white)
-                                .cornerRadius(6)
-                        }
-                        .alert(isPresented: $showRecorderNotInstalledAlert) {
-                            Alert(
-                                title: Text("Recorder アプリが見つかりません"),
-                                message: Text("SYNqFliQRecorder が端末にインストールされていません。App Store で開きますか？"),
-                                primaryButton: .default(Text("App Storeへ"), action: {
-                                    if let appStoreURL = URL(string: "https://apps.apple.com/app/idYOUR_APPSTORE_ID") {
-                                        UIApplication.shared.open(appStoreURL, options: [:], completionHandler: nil)
-                                    }
-                                }),
-                                secondaryButton: .cancel()
-                            )
-                        }
+                   // .angle(isPlaying ? )
+                    .animation(.spring(response: 0.45, dampingFraction: 0.8), value: isPlaying)
+                    HStack {
+                        
                         Spacer()
                         Button(action: {
                             isShowingImportPicker = true
@@ -883,7 +958,7 @@ struct ContentView: View {
                             playCount: playCountForSelectedSheet(),
                             onPlayAgain: {
                                 if !isPlaying {
-                                    if let sel = appModel.selectedSheet {
+                                    if let sel = appModel.resolvedSelectedSheet  {
                                         sheetNotesToPlay = sel.notes
                                         notesToPlay = sel.notes.asNotes()
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
@@ -917,19 +992,19 @@ struct ContentView: View {
 
                     if !isPlaying {
                         HStack {
-                            Text("Selected: \(appModel.selectedSheet?.title ?? "—")")
+                            Text("Selected: \(appModel.resolvedSelectedSheet?.title ?? "—")")
                                 .foregroundColor(.white)
                             Spacer()
-                            Text("Difficulty: \(appModel.selectedSheet?.difficulty ?? "-"):\(appModel.selectedSheet?.level.map { String($0) } ?? "-")")
+                            Text("Difficulty: \(appModel.resolvedSelectedSheet?.difficulty ?? "-"):\(appModel.resolvedSelectedSheet?.level.map { String($0) } ?? "-")")
                                 .foregroundColor(.white)
                         }
                         .padding(.bottom, 20)
                     } else {
                         HStack {
-                            Text("  \(appModel.selectedSheet?.title ?? "—")")
+                            Text("  \(appModel.resolvedSelectedSheet?.title ?? "—")")
                                 .foregroundColor(.white)
                             Spacer()
-                            Text("\(appModel.selectedSheet?.difficulty ?? "-"):\(appModel.selectedSheet?.level.map { String($0) } ?? "-")")
+                            Text("\(appModel.resolvedSelectedSheet?.difficulty ?? "-"):\(appModel.resolvedSelectedSheet?.level.map { String($0) } ?? "-")")
                                 .foregroundColor(.white)
                         }
                         .padding(.bottom, 20)
@@ -1035,6 +1110,30 @@ struct ContentView: View {
                 }
             }
         } // GeometryReader
+        .onReceive(NotificationCenter.default.publisher(for: .playSheet)) { notif in
+            guard let userInfo = notif.userInfo as? [String: Any],
+                  let sheetID = userInfo["sheetID"] as? String else {
+                return
+            }
+
+            let uid = userInfo["userID"] as? String ?? (AuthManager.shared.firebaseUser?.uid ?? "local-user")
+
+            // keep AppModel in sync so computed selectedSheet works
+            appModel.selectedSheetFilename = sheetID
+
+            // if available, set difficulty to keep UI consistent
+            if let userSheet = ScoreStore.shared.userSheets.first(where: { $0.id == sheetID }) {
+                appModel.selectedDifficulty = userSheet.difficulty
+            }
+
+            // choose a playback surface size; replace with stored geometry if you keep one
+            let playbackSize = UIScreen.main.bounds.size
+
+            DispatchQueue.main.async {
+                // call the existing ContentView.startPlayback(in:)
+                self.startPlayback(in: playbackSize)
+            }
+        }
     } // body
 
     // MARK: - History UI helpers
@@ -1045,7 +1144,7 @@ struct ContentView: View {
     private func appendPlayHistoryRecord() {
         let rec = PlayRecord(date: Date(),
                              sheetFilename: appModel.selectedSheetFilename,
-                             sheetTitle: appModel.selectedSheet?.title,
+                             sheetTitle: appModel.resolvedSelectedSheet?.title,
                              score: score,
                              maxCombo: maxCombo,
                              perfectCount: perfectCount,
@@ -1478,7 +1577,7 @@ struct ContentView: View {
     private func startPlayback(in size: CGSize) {
         // inside startPlayback(in size: CGSize) near the beginning:
         prepareBackgroundForSelectedSheet(forceReload: true)
-        if let bg = appModel.selectedSheet?.backgroundFilename {
+        if let bg = appModel.resolvedSelectedSheet?.backgroundFilename {
             prepareBackgroundIfNeeded(named: bg, forceReload: true)
         } else {
             clearBackground()
@@ -1494,7 +1593,7 @@ struct ContentView: View {
 
         // resolve audio
         var audioURL: URL? = nil
-        if let selected = appModel.selectedSheet, let audioName = selected.audioFilename {
+        if let selected = appModel.resolvedSelectedSheet, let audioName = selected.audioFilename {
             audioURL = bundleURLForAudio(named: audioName)
         }
 
@@ -1786,19 +1885,13 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + finishDelay, execute: finishWork)
         }
     }
+    // Snippet: add `lastPausedNoteID` storage and update pausePlayback()/resumePlayback() to support resuming from that note.
+    // Place these changes into your existing PlaybackController.swift (keep other code unchanged).
 
-    private func stopPlayback() {
-        stopGameLoopIfNeeded()
-        if audioPlayer?.isPlaying == true { audioPlayer?.stop() }
-        if backgroundIsVideo { backgroundPlayer?.pause(); backgroundPlayerLooper = nil; backgroundPlayer = nil }
-        backgroundImage = nil; backgroundIsVideo = false; backgroundFilename = nil
-        audioPlayer = nil; currentlyPlayingAudioFilename = nil
-        scheduledWorkItems.forEach { $0.cancel() }; scheduledWorkItems.removeAll()
-        autoDeleteWorkItems.values.forEach { $0.cancel() }; autoDeleteWorkItems.removeAll()
-        holdTimers.values.forEach { $0.cancel() }; holdTimers.removeAll()
-        isPlaying = false; startDate = nil
-    }
+    // --- add this property somewhere in the PlaybackController class scope --
 
+/*
+    // --- updated pausePlayback() ---
     private func pausePlayback() {
         stopGameLoopIfNeeded()
         guard isPlaying else { print("DBG: pause called but not playing"); return }
@@ -1821,18 +1914,61 @@ struct ContentView: View {
             var e = pausedRemainingDelays[id] ?? (nil, nil)
             e.clear = rem; pausedRemainingDelays[id] = e
         }
+        GlobalSFX.shared.stopHoldLoop()
         scheduledSpawnTimes.removeAll(); scheduledClearTimes.removeAll()
-        scheduledNoteInfos.removeAll()
+        // scheduledNoteInfos.removeAll()
+
+        // --- Store a "resume anchor" note ID so resume can jump to it ---
+        // Priority:
+        // 1) If there are active notes, pick the last active note's id (most-recently spawned)
+        // 2) Otherwise, pick the next scheduled spawn (earliest exec time) if any
+        if let lastActive = activeNotes.last?.id {
+            lastPausedNoteID = lastActive
+        } else if let nextScheduled = scheduledSpawnTimes.min(by: { $0.value < $1.value })?.key {
+            lastPausedNoteID = nextScheduled
+        } else {
+            lastPausedNoteID = nil
+        }
+        // Debug
+        if let saved = lastPausedNoteID { print("DBG: pausePlayback saved lastPausedNoteID = \(saved)") }
     }
 
+
+    // --- updated resumePlayback() ---
     private func resumePlayback() {
         guard isPlaying && isStopped else { return }
         isStopped = false
         if let player = audioPlayer { player.play() }
         if backgroundIsVideo { backgroundPlayer?.play() }
         let now = audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970
+
+        // When resuming, we will:
+        // - For all pausedRemainingDelays, schedule spawn/clear as before,
+        // - But if a note matches lastPausedNoteID, we will spawn it immediately (so resume starts from that note)
+        //   and then schedule its clear work as usual (if any).
         for (noteID, delays) in pausedRemainingDelays {
             guard let info = scheduledNoteInfos[noteID] else { continue }
+
+            // If this is the "anchor" note to resume from, spawn immediately instead of waiting the saved spawn delay.
+            if let anchor = lastPausedNoteID, anchor == noteID {
+                // perform spawn immediately on main queue
+                DispatchQueue.main.async { self.performSpawnNow(for: noteID, with: info) }
+                // set a scheduled spawn time as 'now' for consistency
+                scheduledSpawnTimes[noteID] = now
+                // Also, schedule the clear if a clear delay exists (use delays.clear)
+                if let clearRem = delays.clear {
+                    let clearWork = DispatchWorkItem {
+                        DispatchQueue.main.async { self.performClearNow(for: noteID, with: info) }
+                    }
+                    scheduledClearWorkItemsByNote[noteID] = clearWork
+                    DispatchQueue.main.asyncAfter(deadline: .now() + clearRem, execute: clearWork)
+                    scheduledClearTimes[noteID] = now + clearRem
+                }
+                // We do not create a scheduledSpawnWorkItem since we already spawned immediately.
+                continue
+            }
+
+            // Normal resume scheduling for non-anchor notes
             let spawnWork = DispatchWorkItem {
                 DispatchQueue.main.async { self.performSpawnNow(for: noteID, with: info) }
             }
@@ -1841,6 +1977,7 @@ struct ContentView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + spawnRem, execute: spawnWork)
                 scheduledSpawnTimes[noteID] = now + spawnRem
             }
+
             let clearWork = DispatchWorkItem {
                 DispatchQueue.main.async { self.performClearNow(for: noteID, with: info) }
             }
@@ -1850,7 +1987,14 @@ struct ContentView: View {
                 scheduledClearTimes[noteID] = now + clearRem
             }
         }
+
+        // Clear pausedRemainingDelays now that everything is scheduled or spawned.
         pausedRemainingDelays.removeAll()
+
+        // Clear the saved anchor since we've resumed from it.
+        lastPausedNoteID = nil
+
+        // Recreate hold timers for active holds as previous behavior
         for (idx, a) in activeNotes.enumerated() {
             if a.isHold && !a.holdWasReleased {
                 if holdTimers[a.id] == nil {
@@ -1888,7 +2032,172 @@ struct ContentView: View {
             }
         }
     }
+ */
+ /// --- updated pausePlayback() ---
 
+    /// --- updated pausePlayback() (only show the changed/added parts, keep the rest intact) ---
+    private func pausePlayback() {
+        stopGameLoopIfNeeded()
+        guard isPlaying else { print("DBG: pause called but not playing"); return }
+        isStopped = true
+        if audioPlayer?.isPlaying == true { audioPlayer?.pause() }
+        if backgroundIsVideo { backgroundPlayer?.pause() }
+
+        // SAVE absolute scheduled times so resume can decide which notes are "after" the pause anchor.
+        pausedAbsoluteSpawnTimes = scheduledSpawnTimes
+        pausedAbsoluteClearTimes = scheduledClearTimes
+
+        scheduledSpawnWorkItemsByNote.values.forEach { $0.cancel() }; scheduledSpawnWorkItemsByNote.removeAll()
+        scheduledClearWorkItemsByNote.values.forEach { $0.cancel() }; scheduledClearWorkItemsByNote.removeAll()
+        scheduledWorkItems.forEach { $0.cancel() }; scheduledWorkItems.removeAll()
+        autoDeleteWorkItems.values.forEach { $0.cancel() }; autoDeleteWorkItems.removeAll()
+        pausedRemainingDelays.removeAll()
+
+        // Use device time as now (consistent with how you previously scheduled)
+        let now = audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970
+
+        // Rebuild pausedRemainingDelays as before so we keep per-note remaining delays if needed elsewhere
+        for (id, exec) in pausedAbsoluteSpawnTimes {
+            let rem = max(0.0, exec - now)
+            var e = pausedRemainingDelays[id] ?? (nil, nil)
+            e.spawn = rem; pausedRemainingDelays[id] = e
+        }
+        for (id, exec) in pausedAbsoluteClearTimes {
+            let rem = max(0.0, exec - now)
+            var e = pausedRemainingDelays[id] ?? (nil, nil)
+            e.clear = rem; pausedRemainingDelays[id] = e
+        }
+
+        GlobalSFX.shared.stopHoldLoop()
+        scheduledSpawnTimes.removeAll(); scheduledClearTimes.removeAll()
+
+        // --- Crucial change:
+        // Save the current playback time as the resume anchor so that resume will play everything scheduled at/after this time.
+        lastPausedAnchorExecTime = now
+
+        // Optional: also save the "closest" scheduled note id for debug (not relied upon for resume)
+        if let nextScheduled = pausedAbsoluteSpawnTimes.min(by: { $0.value < $1.value }) {
+            lastPausedNoteID = nextScheduled.key
+        } else {
+            lastPausedNoteID = nil
+        }
+
+        if let anchor = lastPausedAnchorExecTime {
+            print("DBG: pausePlayback saved anchorExecTime = \(anchor) lastPausedNoteID=\(lastPausedNoteID ?? nil)")
+        }
+    }
+
+
+    // --- Updated resumePlayback() ---
+    // Replace your resumePlayback() scheduling loop with the following (keep the other parts intact):
+    
+    /// --- updated resumePlayback() (replace your scheduling loop with this) ---
+    private func resumePlayback() {
+        guard isPlaying && isStopped else { return }
+        isStopped = false
+        if let player = audioPlayer { player.play() }
+        if backgroundIsVideo { backgroundPlayer?.play() }
+
+        let now = audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970
+        // Anchor exec time: use saved pause-time anchor (if any), otherwise fall back to now.
+        let anchorExec = lastPausedAnchorExecTime ?? now
+
+        // Tolerance: if a note was supposed to spawn extremely close before anchor, include it
+        let tolerance: TimeInterval = 0.0001
+
+        // Iterate pausedAbsoluteSpawnTimes and schedule notes whose absolute spawn time >= anchorExec - tolerance
+        for (noteID, absSpawn) in pausedAbsoluteSpawnTimes {
+            // if the scheduled spawn was strictly before anchor (and outside tolerance), skip it
+            if absSpawn + tolerance < anchorExec { continue }
+
+            guard let info = scheduledNoteInfos[noteID] else {
+                // If scheduledNoteInfos doesn't contain this note (key mismatch), log for debugging and skip.
+                print("DBG: resume skip missing scheduledNoteInfos for id=\(noteID)")
+                continue
+            }
+
+            // compute relative delay: how long after the anchor this note should appear
+            let relDelay = max(0.0, absSpawn - anchorExec)
+
+            if relDelay <= 0.0001 {
+                // spawn immediately (on main queue)
+                DispatchQueue.main.async { self.performSpawnNow(for: noteID, with: info) }
+                scheduledSpawnTimes[noteID] = now
+            } else {
+                // schedule spawn after relDelay
+                let spawnWork = DispatchWorkItem {
+                    DispatchQueue.main.async { self.performSpawnNow(for: noteID, with: info) }
+                }
+                scheduledSpawnWorkItemsByNote[noteID] = spawnWork
+                DispatchQueue.main.asyncAfter(deadline: .now() + relDelay, execute: spawnWork)
+                scheduledSpawnTimes[noteID] = now + relDelay
+            }
+
+            // schedule clear if we have absolute clear time
+            if let absClear = pausedAbsoluteClearTimes[noteID] {
+                let clearRel = max(0.0, absClear - anchorExec)
+                let clearWork = DispatchWorkItem {
+                    DispatchQueue.main.async { self.performClearNow(for: noteID, with: info) }
+                }
+                scheduledClearWorkItemsByNote[noteID] = clearWork
+                DispatchQueue.main.asyncAfter(deadline: .now() + clearRel, execute: clearWork)
+                scheduledClearTimes[noteID] = now + clearRel
+            } else if let clearRem = pausedRemainingDelays[noteID]?.clear {
+                // fallback to previously saved remaining clear delay
+                let clearWork = DispatchWorkItem {
+                    DispatchQueue.main.async { self.performClearNow(for: noteID, with: info) }
+                }
+                scheduledClearWorkItemsByNote[noteID] = clearWork
+                DispatchQueue.main.asyncAfter(deadline: .now() + clearRem, execute: clearWork)
+                scheduledClearTimes[noteID] = now + clearRem
+            }
+        }
+
+        // Cleanup paused bookkeeping
+        pausedRemainingDelays.removeAll()
+        pausedAbsoluteSpawnTimes.removeAll()
+        pausedAbsoluteClearTimes.removeAll()
+        lastPausedNoteID = nil
+        lastPausedAnchorExecTime = nil
+
+        // Recreate hold timers for active holds (keep your existing logic)
+        for (idx, a) in activeNotes.enumerated() {
+            if a.isHold && !a.holdWasReleased {
+                if holdTimers[a.id] == nil {
+                    let newID = a.id
+                    let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+                    timer.schedule(deadline: .now(), repeating: .milliseconds(33))
+                    timer.setEventHandler {
+                        guard let idx2 = self.activeNotes.firstIndex(where: { $0.id == newID }) else { timer.cancel(); self.holdTimers[newID] = nil; return }
+                        if self.activeNotes[idx2].holdWasReleased { timer.cancel(); self.holdTimers[newID] = nil; return }
+                        let nowDev = self.audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970
+                        let lastTick = self.activeNotes[idx2].holdLastTickDeviceTime ?? nowDev
+                        let delta = max(0.0, nowDev - lastTick)
+                        self.activeNotes[idx2].holdLastTickDeviceTime = nowDev
+                        if self.activeNotes[idx2].holdPressedByUser {
+                            let newRemaining = max(0.0, self.activeNotes[idx2].holdRemainingSeconds - delta)
+                            self.activeNotes[idx2].holdRemainingSeconds = newRemaining
+                            let total = max(0.0001, self.activeNotes[idx2].holdTotalSeconds)
+                            self.activeNotes[idx2].holdTrim = min(1.0, max(0.0, newRemaining / total))
+                            if newRemaining <= 0.0001 {
+                                timer.cancel(); self.holdTimers[newID] = nil
+                                if self.isStopped { self.activeNotes[idx2].holdRemainingSeconds = 0.0; self.activeNotes[idx2].holdTrim = 0.0; self.activeNotes[idx2].holdCompletedWhileStopped = true; return }
+                                self.perfectCount += 1; self.score += 3; self.combo += 1
+                                if self.combo > self.maxCombo { self.maxCombo = self.combo }
+                                self.showJudgement(text: "PERFECT", color: .green)
+                                withAnimation(.easeIn(duration: 0.12)) { self.activeNotes.removeAll { $0.id == newID } }
+                                return
+                            }
+                        } else {
+                            // check miss
+                        }
+                    }
+                    self.holdTimers[newID] = timer
+                    timer.resume()
+                }
+            }
+        }
+    }
     private func performSpawnNow(for noteID: UUID, with info: (sheetNote: SheetNote, target: CGPoint, approachDuration: Double, spawnTime: Double, clearTime: Double)) {
         // replicate the spawn behavior (simplified)
         // This helper can be filled to replicate spawnWork; for now we call startPlayback scheduling path.
@@ -2281,55 +2590,6 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Reusable small views
-
-// Replace your ResultsView (or the small results sheet view) with this version.
-// Place this inside the same file scope where ResultsView is currently defined.
-/*
-struct ResultsView: View {
-    let score: Int
-    let maxCombo: Int
-    let perfect: Int
-    let good: Int
-    let ok: Int
-    let miss: Int
-    let cumulativeCombo: Int
-    let playMaxHistory: [Int]
-    let consecutiveCombo: Int
-
-    @Environment(\.dismiss) private var dismiss // <-- reliable dismiss
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Text("プレイ結果").font(.title).bold()
-            HStack { Text("Score:").bold(); Spacer(); Text("\(score)").bold() }
-            HStack { Text("Max Combo:").bold(); Spacer(); Text("\(maxCombo)") }
-            HStack { Text("PERFECT"); Spacer(); Text("\(perfect)") }
-            HStack { Text("GOOD"); Spacer(); Text("\(good)") }
-            HStack { Text("OK"); Spacer(); Text("\(ok)") }
-            HStack { Text("MISS"); Spacer(); Text("\(miss)") }
-            Divider()
-            HStack { Text("通算連続コンボ"); Spacer(); Text("\(consecutiveCombo)") }
-            HStack { Text("通算コンボ"); Spacer(); Text("\(cumulativeCombo)") }
-            Spacer()
-
-            Button(action: {
-                // Use environment dismiss to reliably close sheet
-                dismiss()
-            }) {
-                Text("閉じる")
-                    .bold()
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-            }
-            .padding(.top, 8)
-        }
-        .padding()
-    }
-} */
 // MARK: - Basic shapes
 
 struct RodView: View {
@@ -2397,57 +2657,56 @@ struct HoldView: View {
         }.frame(width: size, height: size)
     }
 }
-
-// MARK: - TouchOverlay
-// Minimal multi-touch overlay that invokes closures with a synthetic touch id and location.
-// Replace with your existing TouchOverlay implementation if you have one.
-/*class TouchOverlayView: UIView {
-    var onBegan: ((Int, CGPoint) -> Void)?
-    var onMoved: ((Int, CGPoint) -> Void)?
-    var onEnded: ((Int, CGPoint) -> Void)?
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        isMultipleTouchEnabled = true
-        backgroundColor = .clear
-    }
-    required init?(coder: NSCoder) { fatalError("Not implemented") }
-
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches {
-            let id = t.hashValue
-            let p = t.location(in: self)
-            onBegan?(id, p)
-        }
-    }
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches {
-            let id = t.hashValue
-            let p = t.location(in: self)
-            onMoved?(id, p)
-        }
-    }
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches {
-            let id = t.hashValue
-            let p = t.location(in: self)
-            onEnded?(id, p)
-        }
-    }
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches {
-            let id = t.hashValue
-            let p = t.location(in: self)
-            onEnded?(id, p)
-        }
-    }
-}*/
-
+//
 // MARK: - ShareSheet helper
+/*
+extension PlaybackController {
+    public func loadSheet(_ sheet: Sheet, userID: String) {
+        // prepare internal arrays used by startPlayback
+        self.sheetNotesToPlay = sheet.notes
+        self.notesToPlay = sheet.notes.asNotes()
+        // don't try to set appModel.selectedSheet if it's read-only
+        DispatchQueue.main.async {
+            self.appModel.selectedSheetFilename = sheet.id ?? self.appModel.selectedSheetFilename
+            self.appModel.selectedDifficulty = sheet.difficulty
+        }
+    }
+
+    public func loadAudioFile(url: URL) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                try AVAudioSession.sharedInstance().setActive(true)
+            } catch {
+                print("PlaybackController.loadAudioFile: audio session error: \(error)")
+            }
+            do {
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.prepareToPlay()
+                DispatchQueue.main.async {
+                    self.preparedAudioPlayer = player
+                }
+            } catch {
+                print("PlaybackController.loadAudioFile: failed to prepare player: \(error)")
+            }
+        }
+    }
+
+    public func loadAndStart(sheet: Sheet, userID: String, in size: CGSize) {
+        loadSheet(sheet, userID: userID)
+        if let audioURL = ScoreStore.shared.audioURL(for: sheet, userID: userID) {
+            loadAudioFile(url: audioURL)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            self.startPlayback(in: size)
+        }
+    }
+} */
 
 // MARK: - Preview
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView().environmentObject(AppModel())
+        ContentView()
+            .environmentObject(AppModel()) // or AppModel.shared
     }
 }
