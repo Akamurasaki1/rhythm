@@ -15,34 +15,14 @@
 import SwiftUI
 import FirebaseAuth
 
-// MARK: - Crescent shape: outer circle minus inner circle (even-odd fill)
-struct CrescentShape: Shape {
-    var innerAngle: CGFloat = .pi
-    var innerOffsetFraction: CGFloat = 0.62
-    var innerRadiusRatio: CGFloat = 0.62
 
-    func path(in rect: CGRect) -> Path {
-        let cx = rect.midX
-        let cy = rect.midY
-        let outerR = min(rect.width, rect.height) / 2.0
-        let innerR = outerR * innerRadiusRatio
-        let maxOffset = max(0, outerR - innerR)
-        let offset = maxOffset * innerOffsetFraction
-        let innerCx = cx + cos(innerAngle) * offset
-        let innerCy = cy + sin(innerAngle) * offset
-
-        var p = Path()
-        p.addEllipse(in: CGRect(x: cx - outerR, y: cy - outerR, width: outerR * 2, height: outerR * 2))
-        p.addEllipse(in: CGRect(x: innerCx - innerR, y: innerCy - innerR, width: innerR * 2, height: innerR * 2))
-        return p
-    }
-}
 
 // MARK: - SplitCircleView
 // Renders a circle that is visually split into two colors with a soft blurred boundary.
 // Implementation: draw a base (light) circle, overlay a darker circle offset a bit to the left,
 // blur the dark overlay for a soft edge, then mask to the central circle so the outside remains transparent.
-struct SplitCircleView: View {
+private struct SplitCircleView: View {
+    @State private var showingEditor: Bool = false
     var diameter: CGFloat = 200
     var leftColor: Color = Color(red: 0.58, green: 0.18, blue: 0.18) // burgundy
     var rightColor: Color = Color(red: 0.66, green: 0.88, blue: 0.88) // pale aqua
@@ -79,59 +59,7 @@ struct SplitCircleView: View {
     }
 }
 
-// MARK: - CrescentView
-// Visual content for the crescent-shaped control. Does NOT itself handle taps — that's wrapped by FloatingButton.
-struct CrescentView<Content: View>: View {
-    var size: CGFloat
-    var innerAngle: Angle
-    var innerOffsetFraction: CGFloat = 0.62
-    var innerRadiusRatio: CGFloat = 0.62
-    var gradient: LinearGradient? = nil
-    var color: Color? = nil
-    var strokeWidth: CGFloat = 4.0
-    @ViewBuilder var content: () -> Content
 
-    var body: some View {
-        ZStack {
-            // Fill the crescent
-            if let g = gradient {
-                CrescentShape(innerAngle: CGFloat(innerAngle.radians),
-                              innerOffsetFraction: innerOffsetFraction,
-                              innerRadiusRatio: innerRadiusRatio)
-                    .fill(g, style: FillStyle(eoFill: true, antialiased: true))
-                    .frame(width: size, height: size)
-            } else if let c = color {
-                CrescentShape(innerAngle: CGFloat(innerAngle.radians),
-                              innerOffsetFraction: innerOffsetFraction,
-                              innerRadiusRatio: innerRadiusRatio)
-                    .fill(c, style: FillStyle(eoFill: true, antialiased: true))
-                    .frame(width: size, height: size)
-            } else {
-                CrescentShape(innerAngle: CGFloat(innerAngle.radians),
-                              innerOffsetFraction: innerOffsetFraction,
-                              innerRadiusRatio: innerRadiusRatio)
-                    .fill(Color.yellow.opacity(0.9), style: FillStyle(eoFill: true, antialiased: true))
-                    .frame(width: size, height: size)
-            }
-
-            // Black outline similar to your sketch: stroke applies to both outer and inner arcs
-            CrescentShape(innerAngle: CGFloat(innerAngle.radians),
-                          innerOffsetFraction: innerOffsetFraction,
-                          innerRadiusRatio: innerRadiusRatio)
-                .stroke(Color.black, lineWidth: strokeWidth)
-                .frame(width: size, height: size)
-                .shadow(color: Color.black.opacity(0.22), radius: 2, x: 0, y: 2)
-
-            // content (icon + label)
-            content()
-                .foregroundColor(.black)
-                // nudge content slightly toward the visible bulge side so text sits on the crescent area
-                .offset(x: (size * 0.12) * cos(innerAngle.radians))
-        }
-        .frame(width: size, height: size)
-        .compositingGroup()
-    }
-}
 
 // MARK: - TitleView
 struct TitleView: View {
@@ -141,6 +69,8 @@ struct TitleView: View {
     var onShowTutorial: (() -> Void)? = nil
     var onShowHistories: (() -> Void)? = nil
     var onShowChapters: (() -> Void)? = nil
+    var onShowImporter: (() -> Void)? = nil
+    var onShowStories: (() -> Void)? = nil
 
     @State private var showSubtitle = false
     @State private var logoScale: CGFloat = 1.0
@@ -157,6 +87,27 @@ struct TitleView: View {
         }
     }
     @State private var activeSheet: ActiveSheet? = nil
+    // ContentView.swift の struct のプロパティ群の近くに追加
+    @State private var showRecorderNotInstalledAlert = false
+    // ContentView.swift の struct のメソッド領域（body の外）に追加
+    private func openRecorderApp() {
+        // ここを Recorder が登録しているスキームに合わせる（例: synqfliq-recorder）
+        let scheme = "synqfliq-recorder"
+        guard let url = URL(string: "\(scheme)://") else { return }
+
+        if UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        } else {
+            // インストールされていない場合は App Store に誘導するかアラートを表示
+            // ここでは簡易にアラートフラグを立てています。App Store に飛ばすなら下の comment を使ってください。
+            showRecorderNotInstalledAlert = true
+
+            // App Store に直接飛ばす例（App Store の実際の ID に置き換えてください）
+            // if let appStoreURL = URL(string: "https://apps.apple.com/app/idYOUR_APPSTORE_ID") {
+            //     UIApplication.shared.open(appStoreURL, options: [:], completionHandler: nil)
+            // }
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -180,7 +131,7 @@ struct TitleView: View {
                         withAnimation(.easeOut(duration: 0.12)) { logoScale = 0.96 }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                             withAnimation(.spring()) { logoScale = 1.0 }
-                            DispatchQueue.main.async { onShowHistories?() }
+                            DispatchQueue.main.async { onShowStories?() }
                         }
                     }) {
                         Group {
@@ -196,7 +147,7 @@ struct TitleView: View {
                                 // place the image so its bottom-right corner aligns with the screen bottom-right
                                 // (position uses the GeometryReader's coordinate space)
                                     .position(x: geo.size.width - (imageWidth / 5), y: geo.size.height - (imageWidth / 5))
-                                    .allowsHitTesting(false)
+                                    .allowsHitTesting(true)
                                     .ignoresSafeArea()
                             } else {
                                 Color.clear.ignoresSafeArea()
@@ -293,6 +244,77 @@ struct TitleView: View {
                     ZStack {
                         // 1) Draw crescents first (they will be visually cut by center)
                         Group {
+                            VStack { // editorへのボタン
+                                
+                                // Use your FloatingButton implementation unchanged for actions
+                                FloatingButton(amplitude: 7, speed: 1.2, action: {
+                                    // preserved history action exactly as you had previously
+                                    withAnimation(.easeOut(duration: 0.12)) { logoScale = 0.96 }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                                        withAnimation(.spring()) { logoScale = 1.0 }
+                                        DispatchQueue.main.async { openRecorderApp() }
+                                    }
+                                }) {
+                                    CrescentView(size: 85,
+                                                 innerAngle: Angle.degrees( leftAngle.degrees + 105 ),
+                                                 innerOffsetFraction: 0.66,
+                                                 innerRadiusRatio: 0.60,
+                                                 color: Color.yellow.opacity(0.85)) {
+                                        VStack {
+                                            Image(systemName: "pencil")
+                                                .font(.system(size: 14))
+                                            Text("Score Editor")
+                                                .font(.caption2).bold()
+                                        }
+                                        .alert(isPresented: $showRecorderNotInstalledAlert) {
+                                            Alert(
+                                                title: Text("Recorder アプリが見つかりません"),
+                                                message: Text("SYNqFliQRecorder が端末にインストールされていません。App Store で開きますか？"),
+                                                primaryButton: .default(Text("App Storeへ"), action: {
+                                                    if let appStoreURL = URL(string: "https://apps.apple.com/app/idYOUR_APPSTORE_ID") {
+                                                        UIApplication.shared.open(appStoreURL, options: [:], completionHandler: nil)
+                                                    }
+                                                }),
+                                                secondaryButton: .cancel()
+                                            )
+                                        }
+                                        .padding(.leading, 2)
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .position(x: cx - 25 + CGFloat(cos(leftAngle.radians-75)) * leftDistance,
+                                      y: cy + centerSize + CGFloat(sin(leftAngle.radians-75)) * leftDistance)
+                            VStack { // importerへのボタン
+                                
+                                // Use your FloatingButton implementation unchanged for actions
+                                FloatingButton(amplitude: 15, speed: 1.3, action: {
+                                    // preserved history action exactly as you had previously
+                                    withAnimation(.easeOut(duration: 0.12)) { logoScale = 0.96 }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                                        withAnimation(.spring()) { logoScale = 1.0 }
+                                        DispatchQueue.main.async { onShowImporter?() }
+                                    }
+                                }) {
+                                    CrescentView(size: 65,
+                                                 innerAngle: Angle.degrees( leftAngle.degrees + 105 ),
+                                                 innerOffsetFraction: 0.66,
+                                                 innerRadiusRatio: 0.60,
+                                                 color: Color.yellow.opacity(0.85)) {
+                                        VStack {
+                                            Image(systemName: "square.and.arrow.down.fill")
+                                                .font(.system(size: 14))
+                                            Text("Import Score")
+                                                .font(.caption2).bold()
+                                        }
+                                        
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .position(x: cx - 40 + CGFloat(cos(leftAngle.radians-75) *  1.2 * leftDistance),
+                            y: cy + centerSize + CGFloat(sin(leftAngle.radians-75)) *  1.2 * leftDistance)
+
                             // Left (History) crescent - own VStack
                             VStack {
                                 // Use your FloatingButton implementation unchanged for actions
