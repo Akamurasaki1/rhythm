@@ -93,7 +93,19 @@ struct ContentView: View {
     @State private var showSubtitle = false
     @State private var logoScale: CGFloat = 1.0
     @State private var playMoved: Bool = false
-    
+    // Add inside your ContentView (class/struct) scope (not inside another function).
+
+    /// If no active hold note is currently pressed by the user, stop the hold loop SFX.
+    /// This consolidates stop logic and avoids missed stop calls.
+    private func checkAndStopHoldLoopIfNeeded() {
+        DispatchQueue.main.async {
+            // if there remains any active note that is a hold and is pressed by user, keep playing
+            let anyPressed = self.activeNotes.contains { $0.isHold && $0.holdPressedByUser }
+            if !anyPressed {
+                GlobalSFX.shared.stopHoldLoop()
+            }
+        }
+    }
 
     // Add this inside ContentView (struct)
     // Replace your existing nearbyJudgementOverlays(geo:) implementation with this version.
@@ -610,6 +622,8 @@ struct ContentView: View {
                 } else {
                     Color.black.ignoresSafeArea()
                 }
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
                 // Insert this .onReceive modifier into the top-level container in ContentView's body,
                 // for example after the main ZStack/GeometryReader: `.onReceive(NotificationCenter.default.publisher(for: .playSheet)) { notif in ... }`
 
@@ -895,31 +909,6 @@ struct ContentView: View {
                     
                    // .angle(isPlaying ? )
                     .animation(.spring(response: 0.45, dampingFraction: 0.8), value: isPlaying)
-                    HStack {
-                        
-                        Spacer()
-                        Button(action: {
-                            isShowingImportPicker = true
-                        }) {
-                            Text("Import")
-                                .font(.subheadline)
-                                .padding(8)
-                                .background(Color.orange.opacity(0.9))
-                                .foregroundColor(.white)
-                                .cornerRadius(6)
-                        }
-                        Button(action: {
-                            resetAll()
-                        }) {
-                            Text("Reset")
-                                .font(.subheadline)
-                                .padding(8)
-                                .background(Color.gray.opacity(0.3))
-                                .cornerRadius(6)
-                        }
-                        Spacer()
-                    }
-                    .padding(.bottom, 12)
                   
                   /*  .sheet(isPresented: $isShowingRecordDetail) {
                         if let rec = selectedRecord {
@@ -1322,6 +1311,18 @@ struct ContentView: View {
         if let st = startTime { audioStartDeviceTime = TimeInterval(st.hostTime) } else { audioStartDeviceTime = TimeInterval(mach_absolute_time()) }
         player.play()
         print("DBG: scheduled audio (engine) at hostTime \(String(describing: audioStartDeviceTime))")
+        /// Right after you start audio (or after player.play()):
+        do {
+            // example if using AVAudioPlayer
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            audioPlayer?.play() // or scheduleEngine start
+            // notify UI that playback has actually started
+            NotificationCenter.default.post(name: .playbackDidStart, object: nil, userInfo: ["sheetID": appModel.selectedSheetFilename ?? ""])
+        } catch {
+            print("Playback start failed: \(error)")
+            NotificationCenter.default.post(name: .playbackDidStart, object: nil, userInfo: ["sheetID": appModel.selectedSheetFilename ?? ""])
+        }
     }
 
     // MARK: - Background media helpers
@@ -1575,6 +1576,8 @@ struct ContentView: View {
     // MARK: - Spawn / scheduling and playback
 
     private func startPlayback(in size: CGSize) {
+        NotificationCenter.default.post(name: .playbackWillStart, object: nil, userInfo: ["sheetID": appModel.selectedSheetFilename ?? "", "userID": AuthManager.shared.firebaseUser?.uid ?? "local-user"])
+
         // inside startPlayback(in size: CGSize) near the beginning:
         prepareBackgroundForSelectedSheet(forceReload: true)
         if let bg = appModel.resolvedSelectedSheet?.backgroundFilename {
@@ -1642,7 +1645,8 @@ struct ContentView: View {
         activeNotes.removeAll()
         flickedNoteIDs.removeAll()
         scheduledWorkItems.forEach { $0.cancel() }; scheduledWorkItems.removeAll()
-        autoDeleteWorkItems.values.forEach { $0.cancel() }; autoDeleteWorkItems.removeAll()
+        autoDeleteWorkItems.values.forEach {  checkAndStopHoldLoopIfNeeded();$0.cancel() }; autoDeleteWorkItems.removeAll()
+       
 
         print("startPlayback: scheduling \(sheetNotesToPlay.count) notes")
         for note in sheetNotesToPlay {
@@ -1728,10 +1732,12 @@ struct ContentView: View {
                             timer.setEventHandler {
                                 guard let idx3 = self.activeNotes.firstIndex(where: { $0.id == newID }) else { timer.cancel(); self.holdTimers[newID] = nil; return }
                                 if self.activeNotes[idx3].holdWasReleased { timer.cancel(); self.holdTimers[newID] = nil; return }
+
                                 let nowDev2 = self.audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970
                                 let lastTick = self.activeNotes[idx3].holdLastTickDeviceTime ?? nowDev2
                                 let delta = max(0.0, nowDev2 - lastTick)
                                 self.activeNotes[idx3].holdLastTickDeviceTime = nowDev2
+
                                 if self.activeNotes[idx3].holdPressedByUser {
                                     let newRemaining = max(0.0, self.activeNotes[idx3].holdRemainingSeconds - delta)
                                     self.activeNotes[idx3].holdRemainingSeconds = newRemaining
@@ -1745,9 +1751,12 @@ struct ContentView: View {
                                             self.activeNotes[idx3].holdCompletedWhileStopped = true
                                             return
                                         }
+                                        // HOLD COMPLETED: update scoring and UI, and STOP hold loop
                                         self.perfectCount += 1; self.score += 3; self.combo += 1
                                         if self.combo > self.maxCombo { self.maxCombo = self.combo }
                                         self.showJudgement(text: "PERFECT", color: .green)
+                                        // Stop hold loop audio before removing the note
+                                        GlobalSFX.shared.stopHoldLoop()
                                         withAnimation(.easeIn(duration: 0.12)) { self.activeNotes.removeAll { $0.id == newID } }
                                         return
                                     }
@@ -1757,24 +1766,36 @@ struct ContentView: View {
                                     else if let sd = self.startDate, let hed = self.activeNotes[idx3].holdEndTime { holdEndDev = sd.timeIntervalSince1970 + hed }
                                     else if let start = self.activeNotes[idx3].holdStartDeviceTime { holdEndDev = start + self.activeNotes[idx3].holdTotalSeconds }
                                     else if let start = self.activeNotes[idx3].holdStartWallTime { holdEndDev = start + self.activeNotes[idx3].holdTotalSeconds }
+
+                                    // MISS by timeout (no user press before end + tolerance)
                                     if let hed = holdEndDev, nowDev2 - hed > 0.5 && !self.activeNotes[idx3].holdPressedByUser {
                                         if self.isStopped { return }
                                         self.missCount += 1; self.combo = 0; self.consecutiveCombo = 0
                                         self.showJudgement(text: "MISS", color: .red)
                                         timer.cancel(); self.holdTimers[newID] = nil
+                                        // stop hold loop audio before removing the note
+                                        GlobalSFX.shared.stopHoldLoop()
                                         withAnimation(.easeIn(duration: 0.12)) { self.activeNotes.removeAll { $0.id == newID } }
                                         return
                                     }
                                 }
-                                // also check hold completion at end time
+
+                                // also check hold completion at end time (pressed-by-user finishing at the hold end)
                                 if let idx3 = self.activeNotes.firstIndex(where: { $0.id == newID }), let hed = self.activeNotes[idx3].holdEndTime {
                                     let holdEndDev = (self.audioPlayer != nil && self.audioStartDeviceTime != nil) ? (self.audioStartDeviceTime! + hed) : (self.activeNotes[idx3].holdStartWallTime ?? Date().timeIntervalSince1970 + hed)
                                     if self.activeNotes[idx3].holdPressedByUser && (self.audioPlayer?.deviceCurrentTime ?? Date().timeIntervalSince1970) >= holdEndDev {
                                         timer.cancel(); self.holdTimers[newID] = nil
-                                        if self.isStopped { self.activeNotes[idx3].holdRemainingSeconds = 0.0; self.activeNotes[idx3].holdTrim = 0.0; self.activeNotes[idx3].holdCompletedWhileStopped = true; return }
+                                        if self.isStopped {
+                                            self.activeNotes[idx3].holdRemainingSeconds = 0.0
+                                            self.activeNotes[idx3].holdTrim = 0.0
+                                            self.activeNotes[idx3].holdCompletedWhileStopped = true
+                                            return
+                                        }
                                         self.perfectCount += 1; self.score += 3; self.combo += 1
                                         if self.combo > self.maxCombo { self.maxCombo = self.combo }
                                         self.showJudgement(text: "PERFECT", color: .green)
+                                        // Stop hold loop audio before removing the note
+                                        GlobalSFX.shared.stopHoldLoop()
                                         withAnimation(.easeIn(duration: 0.12)) { self.activeNotes.removeAll { $0.id == newID } }
                                         return
                                     }
@@ -1809,6 +1830,9 @@ struct ContentView: View {
                     }
                     self.autoDeleteWorkItems[newID] = deleteWork
                     if note.noteType != "hold" { DispatchQueue.main.asyncAfter(deadline: .now() + self.lifeDuration, execute: deleteWork) }
+                    
+                    checkAndStopHoldLoopIfNeeded() //<- これで押し続けても止まるよ
+                    print("DBG: checkStopHoldLoop: active holds count = \(self.activeNotes.filter { $0.isHold && $0.holdPressedByUser }.count)")
                    
                 }
             } // end spawnWork
@@ -2342,7 +2366,7 @@ struct ContentView: View {
         // Show judgement and start hold loop
         let judgementPos = (activeNotes[idx].targetPosition != .zero) ? activeNotes[idx].targetPosition : activeNotes[idx].position
         showJudgement(text: judgementText, color: judgementColor, position: judgementPos)
-      GlobalSFX.shared.startHoldLoop() // <-これを消したら全く音しなくなったから、他のstartHoldLoopは機能していなさそう。
+        GlobalSFX.shared.startHoldLoop() // <-これを消したら全く音しなくなったから、他のstartHoldLoopは機能していなさそう。
 
         // mark pressed and initialize times
         chosen.holdPressedByUser = true

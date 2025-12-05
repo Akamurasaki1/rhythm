@@ -14,4 +14,10 @@ import Foundation
 extension Notification.Name {
     /// Post a play request with userInfo: ["sheetID": String, "userID": String?]
     static let playSheet = Notification.Name("SYNqFliQ.PlaySheet")
+
+    /// Posted just before playback preparation begins (UI can show loading)
+    static let playbackWillStart = Notification.Name("SYNqFliQ.PlaybackWillStart")
+
+    /// Posted once playback has started (UI should hide loading)
+    static let playbackDidStart = Notification.Name("SYNqFliQ.PlaybackDidStart")
 }

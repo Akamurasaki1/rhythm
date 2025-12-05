@@ -32,6 +32,7 @@ struct SYNqFliQApp: App {
             Group {
                 // honor explicit song-selection request first
                 if appModel.showingSongSelection {
+                   // SongListView().environmentObject(appModel)
                     songSelectionView()
                 } else {
                     switch appState {
@@ -64,8 +65,8 @@ struct SYNqFliQApp: App {
                         )
 
                     case .songSelect:
-                        songSelectionView()
-
+                       songSelectionView()
+                        //SongListView().environmentObject(appModel)
                     case .playing:
                         // show the main ContentView when appState is playing
                         ContentView()

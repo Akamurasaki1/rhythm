@@ -12,6 +12,7 @@ import UniformTypeIdentifiers
 import UIKit
 import AVKit
 import FirebaseAuth
+import Combine
 
 // Lightweight example cell using closure style (kept for reference / reuse)
 struct SongCell_ClosureExample: View {
@@ -107,7 +108,12 @@ struct SongSelectionView: View {
         var songs: [SongSummary]
         var onChoose: (SongSummary, String?) -> Void
         var onCancel: () -> Void
-
+        // 追加: SongSelectionView の struct 内（@State 等の箇所の近く）
+        @State private var isLoading: Bool = false
+        @State private var loadingProgress: Double? = nil
+        @State private var hideWork: DispatchWorkItem?
+        @State private var initialLoadCancellable: AnyCancellable?
+        @State private var didInitialRefresh: Bool = false
         // UI state
         @State private var focusedIndex: Int? = nil
         @State private var showDifficulty: Bool = false
@@ -356,6 +362,50 @@ struct SongSelectionView: View {
                     Button("Cancel", role: .cancel) { /* nothing */ }
                 }
             }
+            // 例: 既存の body { <your top-level view> } の直後にチェインする内容
+            .overlay(LoadingOverlay(isPresented: $isLoading, progress: loadingProgress))
+            .onReceive(NotificationCenter.default.publisher(for: .playbackWillStart)) { notif in
+                DispatchQueue.main.async {
+                    // show loading overlay when a playbackWillStart is requested by other components
+                    self.isLoading = true
+                    self.loadingProgress = nil
+                    // optionally log for debugging
+#if DEBUG
+                    if let info = notif.userInfo { print("DBG: SongSelectionView received playbackWillStart userInfo=\(info)") }
+#endif
+                }} // 一回は必ずローディングを出す
+            .onReceive(NotificationCenter.default.publisher(for: .playbackDidStart)) { _ in
+                // 再生が始まればロード表示を消す
+                self.isLoading = false
+                self.loadingProgress = nil
+                self.hideWork?.cancel()
+                self.hideWork = nil
+            }
+            .onAppear {
+                guard !didInitialRefresh else { return }
+                didInitialRefresh = true
+                let uid = AuthManager.shared.firebaseUser?.uid ?? "local-user"
+                // show overlay while ScoreStore loads
+                self.isLoading = true
+                // subscribe to userSheets updates and hide on first update
+                self.initialLoadCancellable = ScoreStore.shared.$userSheets
+                    .receive(on: DispatchQueue.main)
+                    .sink { _ in
+                        self.isLoading = false
+                        self.initialLoadCancellable?.cancel()
+                        self.initialLoadCancellable = nil
+                    }
+                ScoreStore.shared.refresh(for: uid)
+                // fallback to hide after 4s
+                let fallback = DispatchWorkItem {
+                    DispatchQueue.main.async {
+                        self.isLoading = false
+                        self.initialLoadCancellable?.cancel()
+                        self.initialLoadCancellable = nil
+                    }
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0, execute: fallback)
+            }
         }
 
         // MARK: - Carousel
@@ -582,10 +632,27 @@ struct SongSelectionView: View {
         }
 
         private func performSelect(entry: BundledSheet, forSongTitle title: String) {
+            self.isLoading = true
+             self.loadingProgress = nil
+             let uid = AuthManager.shared.firebaseUser?.uid ?? "local-user"
+             NotificationCenter.default.post(name: .playbackWillStart, object: nil, userInfo: ["sheetID": entry.filename, "userID": uid])
+
             // persist selection into model
             appModel.selectedSheetFilename = entry.filename
             appModel.selectedDifficulty = entry.sheet.difficulty
             print("DBG: SongSelection selected -> filename=\(entry.filename) difficulty=\(String(describing: entry.sheet.difficulty))")
+            // Ask the existing playback flow to start (post .playSheet)
+             NotificationCenter.default.post(name: .playSheet, object: nil, userInfo: ["sheetID": entry.filename, "userID": uid])
+
+             // fallback hide after 6s if playbackDidStart isn't received
+             hideWork?.cancel()
+             let work = DispatchWorkItem {
+                 DispatchQueue.main.async {
+                     withAnimation { self.isLoading = false; self.loadingProgress = nil }
+                 }
+             }
+             hideWork = work
+             DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: work)
 
             // notify caller and close
             onChoose(SongSummary(id: entry.filename, title: entry.sheet.title, composer: entry.sheet.composer,
@@ -595,19 +662,35 @@ struct SongSelectionView: View {
         // New: performSelect for user-saved Sheet
 
         private func performSelectUser(sheet: Sheet, forSongTitle title: String) {
+            // show loading overlay and notify UI that playback will start
+               self.isLoading = true
+               self.loadingProgress = nil
             // persist selection into model using the sheet.id (safeID) as identifier
             let sheetID = sheet.id ?? UUID().uuidString
-            appModel.selectedSheetFilename = sheetID           // identification used by AppModel
+            appModel.selectedSheetFilename = sheetID
             appModel.selectedDifficulty = sheet.difficulty
 
             print("DBG: SongSelection selected (user) -> id=\(sheetID) difficulty=\(String(describing: sheet.difficulty))")
 
-            // Post notification so the ContentView (which contains startPlayback) can react and start playing.
+            // Try to start playback immediately by asking PlaybackController to load and start this sheet.
+            // Use ScoreStore to obtain local files if needed. Use main queue for UI/audio ops.
             let uid = AuthManager.shared.firebaseUser?.uid ?? "local-user"
-            NotificationCenter.default.post(name: .playSheet, object: nil, userInfo: [
-                "sheetID": sheetID,
-                "userID": uid
-            ])
+            DispatchQueue.main.async {
+                // If you implemented the PlaybackController extension loadAndStart(sheet:userID:in:),
+                // this will load the sheet (and audio) and call startPlayback(in:).
+                // UIScreen.main.bounds.size is used here as playback surface size; adjust if you have geometry available.
+                PlaybackController.shared.loadAndStart(sheet: sheet, userID: uid, in: UIScreen.main.bounds.size)
+                
+            }
+            // fallback hide after 6s if playbackDidStart isn't received
+            hideWork?.cancel()
+            let work = DispatchWorkItem {
+                DispatchQueue.main.async {
+                    withAnimation { self.isLoading = false; self.loadingProgress = nil }
+                }
+            }
+            hideWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: work)
 
             // notify caller and close (mirror BundledSheet payload shape)
             onChoose(SongSummary(id: sheetID, title: sheet.title, composer: sheet.composer,
